@@ -1,4 +1,4 @@
-(HL) Define data structures to represent J0 programs.
+DONE (HL) Define data structures to represent J0 programs. 
 (HL) Write a pretty-printer for J0 programs.
 (HL) Write a test-suite of a dozen J0 programs.
 (HL) Implement a big-step interpreter for J0.
