@@ -9,17 +9,28 @@ package comp3010hlprogram;
  *
  * @author Nick
  */
-interface Joe {    }
+interface Joe 
+{
+    public String pp();    
+}
 
 class JNumber implements Joe 
 {
     int n;
+    public String pp()
+    {
+        return Integer.toString(n);
+    }
     JNumber(int _n){ n=_n;};
 }
 
 class JPlus implements Joe
 {
     Joe left, right;
+    public String pp()
+    {
+        return this.left.pp()+"+"+this.right.pp();
+    }
     int JPlus(JNumber left, JNumber right)
     {
         return left.n+right.n;
@@ -29,6 +40,11 @@ class JPlus implements Joe
 class JMult implements Joe
 {
     Joe left,right;
+    public String pp()
+    {
+        return this.left+"*"+this.right;
+    }
+    
     int JMult(JNumber left, JNumber right)
     {
         return left.n*right.n;
