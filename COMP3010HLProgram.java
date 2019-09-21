@@ -7,7 +7,9 @@ import java.io.*;
 
 interface Joe 
 {
-    public String pp();    
+    public String pp();
+    public int interp();
+    
 }
 
 class JNumber implements Joe 
@@ -17,6 +19,10 @@ class JNumber implements Joe
     {
         return Integer.toString(n);
     }
+    public int interp()
+    {
+        return this.n;
+    }
     JNumber(int n){this.n = n;}
 }
 
@@ -25,8 +31,14 @@ class JPlus implements Joe
     public Joe left, right;
     public String pp()
     {
-         return "(+ "+this.left.pp()+" "+this.right.pp()+" )";
+         return this.left.pp()+" + "+this.right.pp();
     }
+    
+    public int interp()
+    {
+        return this.left.interp()+this.right.interp();
+    }
+    
     JPlus(JNumber left, JNumber right)
     {
         this.left = left;
@@ -39,7 +51,12 @@ class JMult implements Joe
     public Joe left,right;
     public String pp()
     {
-        return "(* "+this.left.pp()+" "+this.right.pp()+" )";
+        return this.left.pp()+" * "+this.right.pp();
+    }
+    
+    public int interp()
+    {
+        return this.left.interp()*this.right.interp();
     }
     
     JMult(JNumber left, JNumber right)
@@ -65,12 +82,12 @@ public class COMP3010HLProgram {
        JPlus a2 = new JPlus(test1, t2);
        JPlus a3 = new JPlus(test1, t3);
        System.out.println("The following numbers: "+test1.pp()+" "+test2.pp()+" "+test3.pp()+" "+t1.pp()+" "+t2.pp()+" "+t3.pp()+" should be "+test1.n+" "+test2.n+" "+test3.n+" "+t1.n+" "+t2.n+" "+t3.n);
-       System.out.println(a1.pp()+" should be "+(test1.n+t1.n));
-       System.out.println(a2.pp()+" should be "+(test1.n+t2.n));
-       System.out.println(a3.pp()+" should be "+(test1.n+t3.n));
-       System.out.println(m1.pp()+" should be "+(test1.n*test2.n));
-       System.out.println(m2.pp()+" should be "+(test1.n*test3.n));
-       System.out.println(m3.pp()+" should be "+(t2.n*t3.n));
+       System.out.println(a1.pp()+" should be "+(a1.interp()));
+       System.out.println(a2.pp()+" should be "+(a2.interp()));
+       System.out.println(a3.pp()+" should be "+(a3.interp()));
+       System.out.println(m1.pp()+" should be "+(m1.interp()));
+       System.out.println(m2.pp()+" should be "+(m2.interp()));
+       System.out.println(m3.pp()+" should be "+(m3.interp()));
        
     }
     
