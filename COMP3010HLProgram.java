@@ -3,8 +3,42 @@ Nicholas Sweeney COMP3010 Project
  */
 package comp3010hlprogram;
 
-import java.io.*;
+//SExpression for use of data structures that are Strings, empty, or constants with more SExpressions
+//Interface class contains pretty printer function
+interface Sxpr
+{
+    public String pp();
+}
 
+class SStr implements Sxpr
+{
+    public String s;
+    public String pp() {return s;}
+    public SStr(String s){this.s = s;}
+}
+
+class SEmpty implements Sxpr
+{
+    public String pp(){return "▲▲▲";}
+    public SEmpty( ){ }
+}
+
+class SConst implements Sxpr
+{
+    public Sxpr left, right;
+    public String pp()
+    {
+        return "("+this.left.pp()+" "+this.right.pp()+")";
+    }
+    public SConst(Sxpr left, Sxpr right)
+    {
+        this.left = left;
+        this.right = right;
+    }
+}
+
+//J0 with data structures for Values, Addition, and Multiplication
+//Interface class contains pretty-printer and big step interpreter functions
 interface Joe 
 {
     public String pp();
