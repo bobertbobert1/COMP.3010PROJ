@@ -3,6 +3,7 @@ Nicholas Sweeney COMP3010 Project
  */
 package comp3010hlprogram;
 
+
 //SExpression for use of data structures that are Strings, empty, or constants with more SExpressions
 //Interface class contains pretty printer function
 interface Sxpr
@@ -36,6 +37,14 @@ class SConst implements Sxpr
         this.right = right;
     }
 }
+
+class SENum implements Sxpr
+{
+    public int n;
+    public String pp(){return ""+n;}
+    public SENum(int n){this.n=n;}    
+}
+
 
 //J0 with data structures for Values, Addition, and Multiplication
 //Interface class contains pretty-printer and big step interpreter functions
@@ -100,6 +109,7 @@ class JMult implements Joe
     }
     
 }
+
 public class COMP3010HLProgram {
 
     public static void main(String[] args) {
@@ -115,14 +125,18 @@ public class COMP3010HLProgram {
        JPlus a1 = new JPlus(test1, t1);
        JPlus a2 = new JPlus(test1, t2);
        JPlus a3 = new JPlus(test1, t3);
-       System.out.println("The following numbers: "+test1.pp()+" "+test2.pp()+" "+test3.pp()+" "+t1.pp()+" "+t2.pp()+" "+t3.pp()+" should be "+test1.n+" "+test2.n+" "+test3.n+" "+t1.n+" "+t2.n+" "+t3.n);
-       System.out.println(a1.pp()+" should be "+(a1.interp()));
-       System.out.println(a2.pp()+" should be "+(a2.interp()));
-       System.out.println(a3.pp()+" should be "+(a3.interp()));
-       System.out.println(m1.pp()+" should be "+(m1.interp()));
-       System.out.println(m2.pp()+" should be "+(m2.interp()));
-       System.out.println(m3.pp()+" should be "+(m3.interp()));
        
+       Sxpr groupa = new SConst(new SENum(8),new SConst(new SENum(3),new SConst(new SENum(8), new SEmpty())));
+       Sxpr groupb = new SConst(new SStr("+"), groupa);
+       Sxpr groupc = new SConst(new SStr("a"), new SConst(new SStr("b"), new SConst(new SStr("c"),new SEmpty())));
+       Sxpr groupd = new SConst(new SStr("+"), new SConst(new SENum(1),new SConst(new SEmpty(),new SConst(new SStr("+"), new SConst(new SENum(2), new SConst(new SENum(3), new SEmpty()))))));
+       
+       
+       
+       System.out.println("SExpr groupa outputs: "+groupa.pp()+" should be 838 ");
+       System.out.println("SExpr groupb outputs: "+groupb.pp()+" should be (+838)");
+       System.out.println("SExpr groupc outputs: "+groupc.pp()+" should be (abc)");
+       System.out.println("SExpr groupd outputs: "+groupd.pp()+" should be (+1(+23))");
     }
     
 }
