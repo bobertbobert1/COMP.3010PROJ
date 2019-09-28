@@ -110,33 +110,73 @@ class JMult implements Joe
     
 }
 
-public class COMP3010HLProgram {
-
-    public static void main(String[] args) {
-       JNumber test1 = new JNumber(5);
-       JNumber test2 = new JNumber(10);
-       JNumber test3 = new JNumber(7);
-       JNumber t1 = new JNumber(1);
-       JNumber t2 = new JNumber(2);
-       JNumber t3 = new JNumber(3);
-       JMult m1 = new JMult(test1, test2);
-       JMult m2 = new JMult(test1, test3);
-       JMult m3 = new JMult(t2, t3);
-       JPlus a1 = new JPlus(test1, t1);
-       JPlus a2 = new JPlus(test1, t2);
-       JPlus a3 = new JPlus(test1, t3);
-       
-       Sxpr groupa = new SConst(new SENum(8),new SConst(new SENum(3),new SConst(new SENum(8), new SEmpty())));
-       Sxpr groupb = new SConst(new SStr("+"), groupa);
-       Sxpr groupc = new SConst(new SStr("a"), new SConst(new SStr("b"), new SConst(new SStr("c"),new SEmpty())));
-       Sxpr groupd = new SConst(new SStr("+"), new SConst(new SENum(1),new SConst(new SEmpty(),new SConst(new SStr("+"), new SConst(new SENum(2), new SConst(new SENum(3), new SEmpty()))))));
-       
-       
-       
-       System.out.println("SExpr groupa outputs: "+groupa.pp()+" should be 838 ");
-       System.out.println("SExpr groupb outputs: "+groupb.pp()+" should be (+838)");
-       System.out.println("SExpr groupc outputs: "+groupc.pp()+" should be (abc)");
-       System.out.println("SExpr groupd outputs: "+groupd.pp()+" should be (+1(+23))");
+class COMP3010HLProgram
+{
+    static Joe JA(Joe left, Joe right)
+    {
+        return new JPlus((JNumber)left,(JNumber)right);
     }
-    
+    static Joe desugar(Sxpr se)
+    {
+        
+        //desugar n to n
+        if(se instanceof SENum)
+        {
+            return new JNumber(((SENum)se).n);
+        }
+        //desugar + to 0
+        if(se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("+")
+                && ((SConst)se).right instanceof SEmpty)
+        {
+            return new JNumber(0);
+        }
+        //desugar + left right ... to + desugar(left) desugar(+ right...)
+        if(se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("+")
+                && ((SConst)se).right instanceof SConst)
+        {
+            return new JPlus((JNumber)desugar(((SConst)((SConst)se).right).left),
+                    (JNumber)desugar(((SConst)((SConst)se).right).right));
+        }
+        //desugar * to 1
+        if(se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("*")
+                && ((SConst)se).right instanceof SEmpty)
+        {
+            return new JNumber(1);
+        }
+        //desugar * left right to *desugar(left) desugar(right)
+        if(se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("*")
+                && ((SConst)se).right instanceof SConst)
+        {
+            return new JMult((JNumber)desugar(((SConst)((SConst)se).right).left),
+                    (JNumber)desugar(((SConst)((SConst)se).right).right));
+        }
+        return new JNumber(666);
+    }
+    public static void main(String[] args) {
+       Sxpr groupa = new SConst(new SENum(8),new SENum(3));
+       Sxpr groupb = new SConst(new SStr("+"), groupa);
+       Sxpr groupc = new SENum(838);
+       Sxpr groupd = new SConst(new SStr("*"), new SConst(new SENum(6),new SENum(7)));
+       JNumber test1 = new JNumber(6);
+       JNumber test2 = new JNumber(7);
+       JNumber test3 = new JNumber(3);
+       JNumber t1 = new JNumber(8);
+       JNumber t2 = new JNumber(3);
+       JNumber t3 = new JNumber(8);
+       JMult convert1 = (JMult)desugar(groupd);
+       JNumber convert2 = (JNumber)desugar(groupc);
+       JPlus convert3 = (JPlus)desugar(groupb);
+       
+       System.out.println("SExpr groupa outputs: "+groupb.pp()+" and when converted to JExpr outputs: "+convert3.pp()+" should be "+convert3.interp());
+       System.out.println("SExpr groupd outputs: "+groupd.pp()+" and when converted to JExpr outputs: "+convert1.pp()+" should be "+convert1.interp());
+       System.out.println("SExpr groupc outputs: "+groupc.pp()+" and when converted to JExpr outputs: "+convert2.pp()+" should be "+convert2.interp());
+    }
 }
