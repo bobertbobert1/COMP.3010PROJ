@@ -51,10 +51,87 @@ class SENum implements Sxpr
 interface Joe 
 {
     public String pp();
-    public int interp();
+    public Boolean isEqual();
+    public Joe interp();
     
 }
 
+class JEmpty implements Joe
+{
+    public String pp(){return"▲▲▲";}
+    public JEmpty(){}
+    public Boolean isEqual() {return true;}
+    public Joe interp()
+    {
+        return this;
+    }
+}
+
+class JConst implements Joe
+{
+    public Joe left, right;
+    public String pp() { return "("+this.left.pp()+" "+this.right.pp()+")";}
+    public JConst(Joe left, Joe right)
+    {
+        this.left = left;
+        this.right = right;
+    }
+    public Boolean isEqual(){ return false;}
+    public Joe interp()
+    {
+        return new JConst(this.left.interp(),this.right.interp());
+    }
+}
+
+class JPrim implements Joe
+{
+    public String s;
+    public JPrim(String s){
+        this.s = s;
+    }
+    public Boolean isEqual() { return true; }
+    public String pp()
+    {
+        return "" + this.p;
+    }
+    public Joe interp(){ return this;}
+}
+class JBoo implements Joe 
+{
+    public Boolean b;
+    public JBoo(Boolean b)
+    {
+        this.b = b;
+    }
+    public Boolean isEqual() {return true;}
+    public String pp() {return "" + this.b;}
+    public Joe interp(){return this;}
+}
+
+class Jif implements Joe
+{
+    public Joe cond, taction, faction;
+    public Jif(Joe cond, Joe taction, Joe faction)
+    {
+        this.cond = cond;
+        this.taction = taction;
+        this.faction = faction;    
+    }
+    public Boolean isEqual() {return false;}
+    public String pp()
+    {
+        return "(if "+this.cond.pp()+" "+this.taction.pp()+" "+this.faction.pp()+")";
+    }
+    public Joe interp()
+    {
+        Joe condv = this.cond.interp();
+        if(condv instanceof JBoo &&((JBoo)condv).b==false)
+        {
+            return this.faction.interp();
+        }
+        else
+    }
+}
 class JNumber implements Joe 
 {
     public int n;
@@ -62,7 +139,7 @@ class JNumber implements Joe
     {
         return Integer.toString(n);
     }
-    public int interp()
+    public Joe interp()
     {
         return this.n;
     }
@@ -77,7 +154,7 @@ class JPlus implements Joe
          return this.left.pp()+" + "+this.right.pp();
     }
     
-    public int interp()
+    public Joe interp()
     {
         return this.left.interp()+this.right.interp();
     }
@@ -97,7 +174,7 @@ class JMult implements Joe
         return this.left.pp()+" * "+this.right.pp();
     }
     
-    public int interp()
+    public Joe interp()
     {
         return this.left.interp()*this.right.interp();
     }
