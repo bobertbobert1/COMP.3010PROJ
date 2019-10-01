@@ -56,6 +56,17 @@ interface Joe
     
 }
 
+class JNumber implements Joe
+{
+    public int n;
+    public JNumber(int n)
+    {
+        this.n = n;
+    }
+    public Boolean isEqual(){ return true;}
+    public String pp() { return ""+this.n;}
+    public Joe interp() { return this; }
+}
 class JEmpty implements Joe
 {
     public String pp(){return"▲▲▲";}
@@ -92,7 +103,7 @@ class JPrim implements Joe
     public Boolean isEqual() { return true; }
     public String pp()
     {
-        return "" + this.p;
+        return "" + this.s;
     }
     public Joe interp(){ return this;}
 }
@@ -130,76 +141,77 @@ class Jif implements Joe
             return this.faction.interp();
         }
         else
-    }
-}
-class JNumber implements Joe 
-{
-    public int n;
-    public String pp()
-    {
-        return Integer.toString(n);
-    }
-    public Joe interp()
-    {
-        return this.n;
-    }
-    JNumber(int n){this.n = n;}
-}
-
-class JPlus implements Joe
-{
-    public Joe left, right;
-    public String pp()
-    {
-         return this.left.pp()+" + "+this.right.pp();
-    }
-    
-    public Joe interp()
-    {
-        return this.left.interp()+this.right.interp();
-    }
-    
-    JPlus(JNumber left, JNumber right)
-    {
-        this.left = left;
-        this.right = right;
+        {
+            return this.taction.interp();
+        }
     }
 }
 
-class JMult implements Joe
+class JApp implements Joe
 {
-    public Joe left,right;
+    public Joe oper, args;
+    public JApp(Joe oper, Joe args)
+    {
+        this.oper=oper;
+        this.args=args;
+    }
+    public Boolean isEqual()
+    {
+        return false;
+    }
     public String pp()
     {
-        return this.left.pp()+" * "+this.right.pp();
+        return "(@ "+this.oper.pp()+" "+this.args.pp()+")";
     }
-    
     public Joe interp()
     {
-        return this.left.interp()*this.right.interp();
-    }
-    
-    JMult(JNumber left, JNumber right)
-    {
-        this.left = left;
-        this.right = right;
-    }
-    
+        Joe which_oper = this.oper.interp();
+        Joe arg_vals = this.args.interp();
+        
+        String s = ((JPrim)which_oper).s;
+        int left = ((JNumber)((JConst)arg_vals).left).n;
+        int right = ((JNumber)((JConst)((JConst)arg_vals).right).left).n;
+        if(s.equals("+")) {return new JNumber(left+right);}
+        if(s.equals("-")) {return new JNumber(left-right);}
+        if(s.equals("/")) {return new JNumber(left/right);}
+        if(s.equals("<")) {return new JBoo(left<right);}
+        if(s.equals("<=")) {return new JBoo(left<=right);}
+        if(s.equals("==")) {return new JBoo(left==right);}
+        if(s.equals(">")) {return new JBoo(left>right);}
+        if(s.equals(">=")) {return new JBoo(left>=right);}
+        if(s.equals("!=")) {return new JBoo(left!=right);}
+        
+        return new JNumber(666);
+        }
 }
 
 class COMP3010HLProgram
 {
+    static Joe JNum(int n)
+    {
+        return new JNumber(n);
+    }
     static Joe JA(Joe left, Joe right)
     {
-        return new JPlus((JNumber)left,(JNumber)right);
+        return new JApp(new JPrim("+"), new JConst(left, new JConst(right, new JEmpty())));
     }
+    static Joe JM(Joe left, Joe right)
+    {
+        return new JApp(new JPrim("*"), new JConst(left, new JConst(right,new JEmpty())));
+    }
+    
+    static Sxpr SApp(String oper,Sxpr left, Sxpr right)
+    {
+        return new SConst(new SStr(oper),new SConst(left, new  SConst(right, new SEmpty())));
+    }
+    
     static Joe desugar(Sxpr se)
     {
         
         //desugar n to n
         if(se instanceof SENum)
         {
-            return new JNumber(((SENum)se).n);
+            return JNum(((SENum)se).n);
         }
         //desugar + to 0
         if(se instanceof SConst
@@ -207,7 +219,7 @@ class COMP3010HLProgram
                 && ((SStr)((SConst)se).left).s.equals("+")
                 && ((SConst)se).right instanceof SEmpty)
         {
-            return new JNumber(0);
+            return JNum(0);
         }
         //desugar + left right ... to + desugar(left) desugar(+ right...)
         if(se instanceof SConst
@@ -215,7 +227,7 @@ class COMP3010HLProgram
                 && ((SStr)((SConst)se).left).s.equals("+")
                 && ((SConst)se).right instanceof SConst)
         {
-            return new JPlus((JNumber)desugar(((SConst)((SConst)se).right).left),
+            return JA((JNumber)desugar(((SConst)((SConst)se).right).left),
                     (JNumber)desugar(((SConst)((SConst)se).right).right));
         }
         //desugar * to 1
@@ -224,7 +236,7 @@ class COMP3010HLProgram
                 && ((SStr)((SConst)se).left).s.equals("*")
                 && ((SConst)se).right instanceof SEmpty)
         {
-            return new JNumber(1);
+            return JNum(1);
         }
         //desugar * left right to *desugar(left) desugar(right)
         if(se instanceof SConst
@@ -232,28 +244,47 @@ class COMP3010HLProgram
                 && ((SStr)((SConst)se).left).s.equals("*")
                 && ((SConst)se).right instanceof SConst)
         {
-            return new JMult((JNumber)desugar(((SConst)((SConst)se).right).left),
+            return JM((JNumber)desugar(((SConst)((SConst)se).right).left),
                     (JNumber)desugar(((SConst)((SConst)se).right).right));
+        }
+        
+        //desugar - left right to - desugar(left) desugar(right)
+        if(se instanceof SConst
+         && ((SConst)se).left instanceof SStr
+         && ((SStr)((SConst)se).left).s.equals("-")
+         && ((SConst)se).right instanceof SConst
+         && ((SConst)((SConst)se).right).right instanceof SEmpty) 
+        {
+            return JM(JNum(-1), desugar(((SConst)((SConst)se).right).left) ); 
+        }
+        //desugar none operational primitives
+        if ( se instanceof SConst
+         && ((SConst)se).left instanceof SStr
+         && ((SConst)se).right instanceof SConst
+         && ((SConst)((SConst)se).right).right instanceof SConst
+         && ((SConst)((SConst)((SConst)se).right).right).right instanceof SEmpty) 
+        {
+             return new JApp( new JPrim(((SStr)((SConst)se).left).s),
+                    new JConst(desugar(((SConst)((SConst)se).right).left),
+                    new JConst(desugar(((SConst)((SConst)((SConst)se).right).right).left), new JEmpty()))); }
+        //desugar If statements
+        if ( se instanceof SConst
+         && ((SConst)se).left instanceof SStr
+         && ((SStr)((SConst)se).left).s.equals("if")
+         && ((SConst)se).right instanceof SConst
+         && ((SConst)((SConst)se).right).right instanceof SConst
+         && ((SConst)((SConst)((SConst)se).right).right).right instanceof SConst
+         && ((SConst)((SConst)((SConst)((SConst)se).right).right).right).right instanceof SEmpty ) 
+        {
+            return new Jif( desugar(((SConst)((SConst)se).right).left),
+                   desugar(((SConst)((SConst)((SConst)se).right).right).left),
+                   desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left) ); 
         }
         return new JNumber(666);
     }
     public static void main(String[] args) {
-       Sxpr groupa = new SConst(new SENum(8),new SENum(3));
-       Sxpr groupb = new SConst(new SStr("+"), groupa);
-       Sxpr groupc = new SENum(838);
-       Sxpr groupd = new SConst(new SStr("*"), new SConst(new SENum(6),new SENum(7)));
-       JNumber test1 = new JNumber(6);
-       JNumber test2 = new JNumber(7);
-       JNumber test3 = new JNumber(3);
-       JNumber t1 = new JNumber(8);
-       JNumber t2 = new JNumber(3);
-       JNumber t3 = new JNumber(8);
-       JMult convert1 = (JMult)desugar(groupd);
-       JNumber convert2 = (JNumber)desugar(groupc);
-       JPlus convert3 = (JPlus)desugar(groupb);
        
-       System.out.println("SExpr groupa outputs: "+groupb.pp()+" and when converted to JExpr outputs: "+convert3.pp()+" should be "+convert3.interp());
-       System.out.println("SExpr groupd outputs: "+groupd.pp()+" and when converted to JExpr outputs: "+convert1.pp()+" should be "+convert1.interp());
-       System.out.println("SExpr groupc outputs: "+groupc.pp()+" and when converted to JExpr outputs: "+convert2.pp()+" should be "+convert2.interp());
+       
+       
     }
 }
