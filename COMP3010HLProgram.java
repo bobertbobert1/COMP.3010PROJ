@@ -172,6 +172,7 @@ class JApp implements Joe
         int left = ((JNumber)((JConst)arg_vals).left).n;
         int right = ((JNumber)((JConst)((JConst)arg_vals).right).left).n;
         if(s.equals("+")) {return new JNumber(left+right);}
+        if(s.equals("*")) {return new JNumber(left*right);}
         if(s.equals("-")) {return new JNumber(left-right);}
         if(s.equals("/")) {return new JNumber(left/right);}
         if(s.equals("<")) {return new JBoo(left<right);}
@@ -282,9 +283,56 @@ class COMP3010HLProgram
         }
         return new JNumber(666);
     }
-    public static void main(String[] args) {
-       
-       
+    
+    static int tests_passed = 0;
+    static void test(Sxpr se, Joe expect)
+    {
+        Joe e = desugar(se);
+        //Output the sxpr desugared to joe
+        Joe answer = e.interp();
+        if(!answer.pp().equals(expect.pp()))
+        {
+            System.out.println(e.pp()+" = "+answer.pp()+" but should = "+expect.pp());
+        }
+        else
+        {
+            System.out.println("Test #"+(++tests_passed)+" passed.");
+        }
+    }
+    
+    static void test_num(Sxpr se, int n)
+    {
+        test(se, JNum(n));
+    }
+    public static void main(String[] args) 
+    {
+       Sxpr mult1 = new SConst(new SStr("*"), new SConst(new SENum(6), new SENum(7))); 
+       Sxpr sub1 = new SConst(new SStr("-"), new SConst(new SENum(8), new SConst(new SENum(11), new SEmpty())));
+       Sxpr add1 = new SConst(new SStr("+"), new SConst(new SENum(2), new SENum(2)));
+       Sxpr div1 = new SConst(new SStr("/"), new SConst(new SENum(8), new SConst(new SENum(2), new SEmpty())));
+       Sxpr test5 = new SENum(5);
+       Sxpr test6 = new SStr("<");
+       Sxpr test7 = new SENum (7);
+       Sxpr test8 = new SStr(">=");
+       Sxpr test9 = new SConst(test6, new SConst(test5, new SConst(test7, new SEmpty())));
+       Sxpr test10 = new SConst(test8, new SConst(test7, new SConst(test5, new SEmpty())));
+       Sxpr iftest = new SConst(new SStr("if"), new SConst(test5, new SConst(test7, new SEmpty())));
+       Joe joemult = desugar(mult1);
+       Joe joesub = desugar(sub1);
+       Joe joeadd = desugar(add1);
+       Joe joediv = desugar(div1);
+       Joe joenum = desugar(test5);
+       Joe joetest5 = desugar(test9);
+       Joe joetest6 = desugar(test10);
+       Joe joetest7 = desugar(iftest);
+       System.out.println("Sxpr: "+mult1.pp()+" and the Joe conversion: "+joemult.pp()+" and it equals "+joemult.interp().pp());
+       System.out.println("Sxpr: "+sub1.pp()+" and the Joe conversion: "+joesub.pp()+" and it equals "+joesub.interp().pp());
+       System.out.println("Sxpr: "+add1.pp()+" and the Joe conversion: "+joeadd.pp()+" and it equals "+joeadd.interp().pp());
+       System.out.println("Sxpr: "+div1.pp()+" and the Joe conversion: "+joediv.pp()+" and it equals "+joediv.interp().pp());
+       System.out.println("Sxpr: "+test5.pp()+" and the Joe conversion: "+joenum.pp());
+       System.out.println("Sxpr: "+test9.pp()+" and the Joe conversion: "+joetest5.pp());
+       System.out.println("Sxpr: "+test10.pp()+" and the Joe conversion: "+joetest6.pp());
+       System.out.println("Sxpr: "+iftest.pp()+" and the Joe conversion: "+joetest7.pp());
        
     }
 }
