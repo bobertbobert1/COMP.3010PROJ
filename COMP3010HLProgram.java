@@ -201,9 +201,26 @@ class COMP3010HLProgram
         return new JApp(new JPrim("*"), new JConst(left, new JConst(right,new JEmpty())));
     }
     
-    static Sxpr SApp(String oper,Sxpr left, Sxpr right)
+    static Sxpr SApp(String oper ,Sxpr left, Sxpr right)
     {
         return new SConst(new SStr(oper),new SConst(left, new  SConst(right, new SEmpty())));
+    }
+    
+    static Sxpr SN(int n)
+    {
+        return new SENum(n);
+    }
+    static Sxpr SA(Sxpr left, Sxpr right)
+    {
+        return SApp("+",left, right);
+    }
+    static Sxpr SM(Sxpr left, Sxpr right)
+    {
+        return SApp("*",left, right);
+    }
+    static Sxpr SIf(Sxpr cond, Sxpr left, Sxpr right)
+    {
+        return new SConst(new SStr("if"), new SConst(cond, new SConst(left, new SConst(right, new SEmpty()))));
     }
     
     static Joe desugar(Sxpr se)
@@ -212,9 +229,22 @@ class COMP3010HLProgram
         //desugar n to n
         if(se instanceof SENum)
         {
-            return JNum(((SENum)se).n);
+            return JNum(((SENum) se).n);
         }
-        //desugar + to 0
+        
+        
+        //desugar + SENum SEmpty to desugar(SENum)
+        if((se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("+")
+                && ((SConst)se).right instanceof SConst
+                && ((SConst)((SConst)se).right).left instanceof SENum
+                && ((SConst)((SConst)se).right).right instanceof SEmpty))
+        {
+            return desugar(((SConst)((SConst)se).right).left);
+        }
+        
+        //desugar + SEmpty to 0
         if(se instanceof SConst
                 && ((SConst)se).left instanceof SStr
                 && ((SStr)((SConst)se).left).s.equals("+")
@@ -222,16 +252,29 @@ class COMP3010HLProgram
         {
             return JNum(0);
         }
+        
         //desugar + left right ... to + desugar(left) desugar(+ right...)
         if(se instanceof SConst
                 && ((SConst)se).left instanceof SStr
                 && ((SStr)((SConst)se).left).s.equals("+")
                 && ((SConst)se).right instanceof SConst)
         {
-            return JA((JNumber)desugar(((SConst)((SConst)se).right).left),
-                    (JNumber)desugar(((SConst)((SConst)se).right).right));
+            return JA(desugar(((SConst)((SConst)se).right).left),
+                    desugar(new SConst(((SConst)se).left, ((SConst)((SConst)se).right).right)));
         }
-        //desugar * to 1
+        
+        //desugar * SENum SEmpty to desugar(SENum)
+        if((se instanceof SConst
+                && ((SConst)se).left instanceof SStr
+                && ((SStr)((SConst)se).left).s.equals("*")
+                && ((SConst)se).right instanceof SConst
+                && ((SConst)((SConst)se).right).left instanceof SENum
+                && ((SConst)((SConst)se).right).right instanceof SEmpty))
+        {
+            return desugar(((SConst)((SConst)se).right).left);
+        }
+        
+        //desugar * SEmpty to 1
         if(se instanceof SConst
                 && ((SConst)se).left instanceof SStr
                 && ((SStr)((SConst)se).left).s.equals("*")
@@ -239,14 +282,15 @@ class COMP3010HLProgram
         {
             return JNum(1);
         }
+        
         //desugar * left right to *desugar(left) desugar(right)
         if(se instanceof SConst
                 && ((SConst)se).left instanceof SStr
                 && ((SStr)((SConst)se).left).s.equals("*")
                 && ((SConst)se).right instanceof SConst)
         {
-            return JM((JNumber)desugar(((SConst)((SConst)se).right).left),
-                    (JNumber)desugar(((SConst)((SConst)se).right).right));
+            return JM(desugar(((SConst)((SConst)se).right).left),
+                    desugar(new SConst(((SConst)se).left, ((SConst)((SConst)se).right).right)));
         }
         
         //desugar - left right to - desugar(left) desugar(right)
@@ -281,7 +325,8 @@ class COMP3010HLProgram
                    desugar(((SConst)((SConst)((SConst)se).right).right).left),
                    desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left) ); 
         }
-        return new JNumber(666);
+        
+        return JNum(666);
     }
     
     static int tests_passed = 0;
@@ -296,7 +341,7 @@ class COMP3010HLProgram
         }
         else
         {
-            System.out.println("Test #"+(++tests_passed)+" passed.");
+            tests_passed++;
         }
     }
     
@@ -306,33 +351,43 @@ class COMP3010HLProgram
     }
     public static void main(String[] args) 
     {
-       Sxpr mult1 = new SConst(new SStr("*"), new SConst(new SENum(6), new SENum(7))); 
-       Sxpr sub1 = new SConst(new SStr("-"), new SConst(new SENum(8), new SConst(new SENum(11), new SEmpty())));
-       Sxpr add1 = new SConst(new SStr("+"), new SConst(new SENum(2), new SENum(2)));
-       Sxpr div1 = new SConst(new SStr("/"), new SConst(new SENum(8), new SConst(new SENum(2), new SEmpty())));
-       Sxpr test5 = new SENum(5);
-       Sxpr test6 = new SStr("<");
-       Sxpr test7 = new SENum (7);
-       Sxpr test8 = new SStr(">=");
-       Sxpr test9 = new SConst(test6, new SConst(test5, new SConst(test7, new SEmpty())));
-       Sxpr test10 = new SConst(test8, new SConst(test7, new SConst(test5, new SEmpty())));
-       Sxpr iftest = new SConst(new SStr("if"), new SConst(test5, new SConst(test7, new SEmpty())));
-       Joe joemult = desugar(mult1);
-       Joe joesub = desugar(sub1);
-       Joe joeadd = desugar(add1);
-       Joe joediv = desugar(div1);
-       Joe joenum = desugar(test5);
-       Joe joetest5 = desugar(test9);
-       Joe joetest6 = desugar(test10);
-       Joe joetest7 = desugar(iftest);
-       System.out.println("Sxpr: "+mult1.pp()+" and the Joe conversion: "+joemult.pp()+" and it equals "+joemult.interp().pp());
-       System.out.println("Sxpr: "+sub1.pp()+" and the Joe conversion: "+joesub.pp()+" and it equals "+joesub.interp().pp());
-       System.out.println("Sxpr: "+add1.pp()+" and the Joe conversion: "+joeadd.pp()+" and it equals "+joeadd.interp().pp());
-       System.out.println("Sxpr: "+div1.pp()+" and the Joe conversion: "+joediv.pp()+" and it equals "+joediv.interp().pp());
-       System.out.println("Sxpr: "+test5.pp()+" and the Joe conversion: "+joenum.pp());
-       System.out.println("Sxpr: "+test9.pp()+" and the Joe conversion: "+joetest5.pp());
-       System.out.println("Sxpr: "+test10.pp()+" and the Joe conversion: "+joetest6.pp());
-       System.out.println("Sxpr: "+iftest.pp()+" and the Joe conversion: "+joetest7.pp());
+        test_num(SN(42), 42);
+        test_num(SN(7), 7);
+        test_num(SA(SN(42),SN(0)), 42);
+        test_num(SM(SN(42),SN(0)), 0);
+        test_num(SA(SM(SN(42),SN(0)),SN(0)), 0);
+        test_num(SA(SM(SN(42),SN(0)),SA(SM(SN(42),SN(0)),SN(0))), 0);
+
+        test_num(SA(SN(42),SN(1)), 43);
+        test_num(SM(SN(42),SN(1)), 42);
+        test_num(SA(SM(SN(42),SN(1)),SN(1)), 43);
+        test_num(SA(SM(SN(42),SN(1)),SA(SM(SN(42),SN(1)),SN(1))), 85);
+
+        test_num(new SConst(new SStr("+"), new SEmpty()), 0);
+        test_num(new SConst(new SStr("*"), new SEmpty()), 1);
+        Sxpr three_things =
+          new SConst(new SENum(1),
+                      new SConst(new SENum(2),
+                                  new SConst(new SENum(4),
+                                              new SEmpty())));
+        test_num(new SConst(new SStr("+"), three_things), 7);
+        test_num(new SConst(new SStr("*"), three_things), 8);
+
+        test_num(new SConst(new SStr("-"), new SConst(new SENum(4), new SEmpty())), -4);
+        test_num(new SConst(new SStr("-"), new SConst(new SENum(4), new SConst(new SENum(2), new SEmpty()))), 2);
+
+        test(new SConst(new SStr("=="), new SConst(new SENum(4), new SConst(new SENum(2), new SEmpty()))), new JBoo(false));
+        test(new SConst(new SStr("=="), new SConst(new SENum(4), new SConst(new SENum(4), new SEmpty()))), new JBoo(true));
+
+        test(SApp("==", new SENum(4), new SENum(4)), new JBoo(true));
+        test(SIf(SApp("==", new SENum(4), new SENum(4)),
+                 new SENum(5),
+                 new SENum(6)), JNum(5));
+        test(SIf(SApp("==", new SENum(4), new SENum(2)),
+                 new SENum(5),
+                 new SENum(6)), JNum(6));
+
+        System.out.println(tests_passed + " tests passed!");
        
     }
 }
