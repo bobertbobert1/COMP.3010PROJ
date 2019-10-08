@@ -147,6 +147,35 @@ class Jif implements Joe
     }
 }
 
+class Context implements Joe
+{
+    public Joe hole, left, right;
+    public Context(Joe hole, Joe left, Joe right)
+    {
+        this.hole = hole;
+        this.left = left;
+        this.right = right;
+        
+    }
+    public Boolean isEqual()
+    {
+        return false;
+    }
+    
+    public String pp()
+    {
+        return "(C "+this.left.pp()+" "+this.hole.pp()+" "+this.right.pp()+")";
+    }
+    
+    public Joe interp()
+    {
+        Joe which_hole = this.hole.interp();
+        Joe which_left = this.left.interp();
+        Joe which_right = this.right.interp();
+        return new JConst(which_left, new JConst(which_hole, which_right));
+    }
+    
+}
 class JApp implements Joe
 {
     public Joe oper, args;
