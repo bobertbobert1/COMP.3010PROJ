@@ -147,32 +147,58 @@ class Jif implements Joe
     }
 }
 
-class Context implements Joe
+interface Context
 {
-    public Joe hole, left, right;
-    public Context(Joe hole, Joe left, Joe right)
+    Joe plug(Joe r);
+}
+
+class hole implements Context
+{
+    public Joe plug(Joe fill)
+    {
+        return fill;
+    }
+}
+
+class cap implements Context
+{
+      public Context hole;
+      public Joe oper, left, right;
+      
+      public cap(Context c, Joe oper, Joe left, Joe right)
+      {
+          hole = c;
+          this.oper = oper;
+          this.left = left;
+          this.right = right;
+          
+      }
+      
+      public Joe plug(Joe fill)
+      {
+          if(left instanceof JEmpty)
+          {
+              return new JApp(oper, new JConst(fill, new JConst(right, new JEmpty())));
+          }
+          return new JApp(oper, new JConst(left, new JConst(fill, new JEmpty())));
+      }
+}
+
+class Cif implements Context
+{
+    public Joe taction, faction;
+    public Context hole;
+    
+    public Cif(Context hole, Joe left, Joe right)
     {
         this.hole = hole;
-        this.left = left;
-        this.right = right;
-        
-    }
-    public Boolean isEqual()
-    {
-        return false;
+        taction = left;
+        faction = right;
     }
     
-    public String pp()
+    public Joe plug(Joe fill)
     {
-        return "(C "+this.left.pp()+" "+this.hole.pp()+" "+this.right.pp()+")";
-    }
-    
-    public Joe interp()
-    {
-        Joe which_hole = this.hole.interp();
-        Joe which_left = this.left.interp();
-        Joe which_right = this.right.interp();
-        return new JConst(which_left, new JConst(which_hole, which_right));
+        return new Jif(hole.plug(fill),taction, faction);
     }
     
 }
