@@ -147,61 +147,6 @@ class Jif implements Joe
     }
 }
 
-interface Context
-{
-    Joe plug(Joe r);
-}
-
-class hole implements Context
-{
-    public Joe plug(Joe fill)
-    {
-        return fill;
-    }
-}
-
-class cap implements Context
-{
-      public Context hole;
-      public Joe oper, left, right;
-      
-      public cap(Context c, Joe oper, Joe left, Joe right)
-      {
-          hole = c;
-          this.oper = oper;
-          this.left = left;
-          this.right = right;
-          
-      }
-      
-      public Joe plug(Joe fill)
-      {
-          if(left instanceof JEmpty)
-          {
-              return new JApp(oper, new JConst(fill, new JConst(right, new JEmpty())));
-          }
-          return new JApp(oper, new JConst(left, new JConst(fill, new JEmpty())));
-      }
-}
-
-class Cif implements Context
-{
-    public Joe taction, faction;
-    public Context hole;
-    
-    public Cif(Context hole, Joe left, Joe right)
-    {
-        this.hole = hole;
-        taction = left;
-        faction = right;
-    }
-    
-    public Joe plug(Joe fill)
-    {
-        return new Jif(hole.plug(fill),taction, faction);
-    }
-    
-}
 class JApp implements Joe
 {
     public Joe oper, args;
@@ -241,8 +186,107 @@ class JApp implements Joe
         }
 }
 
+interface Context
+{
+    Joe plug(Joe r);
+}
+
+class hole implements Context
+{
+    public Joe plug(Joe fill)
+    {
+        return fill;
+    }
+}
+
+
+class cap implements Context
+{
+      public Context hole;
+      public Joe oper, left, right;
+      
+      public cap(Context c, Joe oper, Joe left, Joe right)
+      {
+          hole = c;
+          this.oper = oper;
+          this.left = left;
+          this.right = right;
+          
+      }
+      
+      public Joe plug(Joe fill)
+      {
+          if(left instanceof JEmpty)
+          {
+              return new JApp(oper, new JConst(fill, new JConst(right, new JEmpty())));
+          }
+          return new JApp(oper, new JConst(left, new JConst(fill, new JEmpty())));
+      }
+}
+
+//Context if for when the hole is in place of the condition case
+class Cif1 implements Context
+{
+    public Joe taction, faction;
+    public Context hole;
+    
+    public Cif1(Context hole, Joe left, Joe right)
+    {
+        this.hole = hole;
+        taction = left;
+        faction = right;
+    }
+    
+    public Joe plug(Joe fill)
+    {
+        return new Jif(hole.plug(fill),taction, faction);
+    }
+    
+}
+
+//Context if for when the hole is in place of the true case
+class Cif2 implements Context
+{
+    public Joe cond, faction;
+    public Context hole;
+    
+    public Cif2(Joe left, Context hole, Joe right)
+    {
+        this.hole = hole;
+        cond = left;
+        faction = right;
+    }
+    
+    public Joe plug(Joe fill)
+    {
+        return new Jif(cond, hole.plug(fill), faction);
+    }
+    
+}
+
+//Context if for when the hole is in place of the false case
+class Cif3 implements Context
+{
+    public Joe taction, cond;
+    public Context hole;
+    
+    public Cif3(Joe left, Joe right, Context hole)
+    {
+        this.hole = hole;
+        taction = right;
+        cond = left;
+    }
+    
+    public Joe plug(Joe fill)
+    {
+        return new Jif(cond, taction, hole.plug(fill));
+    }
+    
+}
+
 class COMP3010HLProgram
 {
+    //Defining sorter function names for quicker test case creation
     static Joe JNum(int n)
     {
         return new JNumber(n);
@@ -384,6 +428,54 @@ class COMP3010HLProgram
         return JNum(666);
     }
     
+    //Find redex function
+    static Joe findRed(Context c, Joe e)
+    {
+        
+        //If no redex is found
+        if(e.isEqual())
+        {
+            return e;
+        }
+        
+        //If redex is a Jif
+        if(e instanceof Jif)
+        {
+            if(((Jif)e).cond.isEqual())
+            {
+                return e;
+            }
+            
+            Joe red = findRed(c, ((Jif)e).cond);
+            return red;
+            
+        }
+        
+        //If redex is a JApp
+        if(e instanceof JApp)
+        {
+            Joe carry = ((JApp)e).args;
+            
+            //Loop goes through arguments until at the end of the term list or if a redex is found
+            while(!carry.isEqual())
+            {
+                if(carry instanceof JConst)
+                {
+                    if(!((JConst)carry).left.isEqual())
+                    {
+                        Joe red = findRed(c, ((JConst)carry).left);
+                        return red;
+                    }
+                }
+                carry = ((JConst)carry).right;
+            }
+        }
+        
+        //Failure case
+        return e;
+    }
+    
+    //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
     static int tests_passed = 0;
     static void test(Sxpr se, Joe expect)
     {
@@ -404,6 +496,8 @@ class COMP3010HLProgram
     {
         test(se, JNum(n));
     }
+    
+    //Main runs all tests
     public static void main(String[] args) 
     {
         test_num(SN(42), 42);
