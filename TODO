@@ -12,7 +12,7 @@ DONE (HL) Extend your interpreter for J1.
 DONE (HL) Define data structures to represent contexts.
 DONE (HL) Implement plug, a function that fills the hole in a context with a program.
 DONE (HL) Implement find-redex, a function that breaks a term into a context and a redex.
-(HL) Implement a small-step interpreter for J1 using contexts.
+DONE (HL) Implement a small-step interpreter for J1 using contexts.
 (HL) Refine your definition of contexts to only allow evaluation contexts.
 (HL) Refine find-redex so that it looks for evaluation contexts.
 (HL) Implement the CC0 machine interpreter for J1.
