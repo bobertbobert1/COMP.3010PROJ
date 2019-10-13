@@ -46,14 +46,17 @@ class SENum implements Sxpr
 }
 
 
-//J0 with data structures for Values, Addition, and Multiplication
-//Interface class contains pretty-printer and big step interpreter functions
+/*
+J0 with data structures for Values, Addition, and Multiplication
+Interface class contains pretty-printer, big step interpreter
+boolean comparison, and small step interpreter functions
+*/
 interface Joe 
 {
     public String pp();
     public Boolean isEqual();
     public Joe interp();
-    
+    public Joe step();
 }
 
 class JNumber implements Joe
@@ -66,6 +69,7 @@ class JNumber implements Joe
     public Boolean isEqual(){ return true;}
     public String pp() { return ""+this.n;}
     public Joe interp() { return this; }
+    public Joe step() { return this; }
 }
 class JEmpty implements Joe
 {
@@ -76,6 +80,7 @@ class JEmpty implements Joe
     {
         return this;
     }
+    public Joe step() {return this;}
 }
 
 class JConst implements Joe
@@ -92,6 +97,10 @@ class JConst implements Joe
     {
         return new JConst(this.left.interp(),this.right.interp());
     }
+    public Joe step()
+    {
+        return this.left.step();
+    }
 }
 
 class JPrim implements Joe
@@ -106,6 +115,7 @@ class JPrim implements Joe
         return "" + this.s;
     }
     public Joe interp(){ return this;}
+    public Joe step(){ return this;}
 }
 class JBoo implements Joe 
 {
@@ -117,6 +127,7 @@ class JBoo implements Joe
     public Boolean isEqual() {return true;}
     public String pp() {return "" + this.b;}
     public Joe interp(){return this;}
+    public Joe step(){return this;}
 }
 
 class Jif implements Joe
@@ -144,6 +155,22 @@ class Jif implements Joe
         {
             return this.taction.interp();
         }
+    }
+    
+    public Joe step()
+    {
+        if(cond instanceof JBoo)
+        {
+            if(((JBoo)cond).b == true)
+            {
+                return taction;
+            }
+            return faction;
+        }
+        
+        cond = cond.step();
+        return this.cond;
+        
     }
 }
 
@@ -183,9 +210,40 @@ class JApp implements Joe
         if(s.equals("!=")) {return new JBoo(left!=right);}
         
         return new JNumber(666);
+    }
+    
+    public Joe step()
+    {
+        if(!((((JConst)args).left).isEqual()))
+        {
+            return ((JConst)args).left.step();
         }
+        
+        if(!(((JConst)((JConst)args).right).left.isEqual()))
+        {
+            return ((JConst)((JConst)args).right).left.step();
+        }
+        
+        
+        String s = ((JPrim)oper).s;
+        int left = ((JNumber)((JConst)args).left).n;
+        int right = ((JNumber)((JConst)((JConst)args).right).left).n;
+        if(s.equals("+")) {return new JNumber(left+right);}
+        if(s.equals("*")) {return new JNumber(left*right);}
+        if(s.equals("-")) {return new JNumber(left-right);}
+        if(s.equals("/")) {return new JNumber(left/right);}
+        if(s.equals("<")) {return new JBoo(left<right);}
+        if(s.equals("<=")) {return new JBoo(left<=right);}
+        if(s.equals("==")) {return new JBoo(left==right);}
+        if(s.equals(">")) {return new JBoo(left>right);}
+        if(s.equals(">=")) {return new JBoo(left>=right);}
+        if(s.equals("!=")) {return new JBoo(left!=right);}
+        
+        return new JNumber(666);
+    }
 }
 
+//Context contains plug function for filling holes in expressions
 interface Context
 {
     Joe plug(Joe r);
@@ -473,6 +531,20 @@ class COMP3010HLProgram
         
         //Failure case
         return e;
+    }
+    
+    static Joe terp (Joe e)
+    {
+        Joe ee = e.step();
+        
+        //No more steps
+        if(ee == e)
+        {
+            return e;
+        }
+        
+        //More steps to be had
+        return terp(ee);
     }
     
     //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
