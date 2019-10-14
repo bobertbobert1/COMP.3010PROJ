@@ -283,12 +283,12 @@ class cap implements Context
 }
 
 //Context if for when the hole is in place of the condition case
-class Cif1 implements Context
+class Cif implements Context
 {
     public Joe taction, faction;
     public Context hole;
     
-    public Cif1(Context hole, Joe left, Joe right)
+    public Cif(Context hole, Joe left, Joe right)
     {
         this.hole = hole;
         taction = left;
@@ -302,45 +302,6 @@ class Cif1 implements Context
     
 }
 
-//Context if for when the hole is in place of the true case
-class Cif2 implements Context
-{
-    public Joe cond, faction;
-    public Context hole;
-    
-    public Cif2(Joe left, Context hole, Joe right)
-    {
-        this.hole = hole;
-        cond = left;
-        faction = right;
-    }
-    
-    public Joe plug(Joe fill)
-    {
-        return new Jif(cond, hole.plug(fill), faction);
-    }
-    
-}
-
-//Context if for when the hole is in place of the false case
-class Cif3 implements Context
-{
-    public Joe taction, cond;
-    public Context hole;
-    
-    public Cif3(Joe left, Joe right, Context hole)
-    {
-        this.hole = hole;
-        taction = right;
-        cond = left;
-    }
-    
-    public Joe plug(Joe fill)
-    {
-        return new Jif(cond, taction, hole.plug(fill));
-    }
-    
-}
 
 class COMP3010HLProgram
 {
