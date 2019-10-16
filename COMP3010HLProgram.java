@@ -272,6 +272,7 @@ class cap implements Context
           
       }
       
+      
       public Joe plug(Joe fill)
       {
           if(left instanceof JEmpty)
@@ -496,16 +497,20 @@ class COMP3010HLProgram
     
     static Joe terp (Joe e)
     {
-        Joe ee = e.step();
+        Context c = new hole();
+        Joe rede = findRed(c, e);
+        Joe redee = rede.step();
+        Joe finale = c.plug(redee);
+        
         
         //No more steps
-        if(ee == e)
+        if(finale == e)
         {
             return e;
         }
         
         //More steps to be had
-        return terp(ee);
+        return terp(finale);
     }
     
     //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
