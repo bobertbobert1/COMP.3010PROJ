@@ -303,53 +303,80 @@ class Cif implements Context
     
 }
 
+//CC0 Machine
+class CC0
+{
+    class state
+    {
+        Joe e;
+        Context E;
+        public state(Joe e, Context E)
+        {
+            this.e = e;
+            this.E = E;
+        }
+    }
+    
+    public state inject(Joe e)
+    {
+        return new state(e, new hole());
+    }
+    
+    public Joe extract(state st)
+    {
+        return st.E.plug(st.e);
+    }
+    
+    public state step(state st)
+    {
+        if(st.e instanceof Jif)
+        {
+            
+        }
+        if(st.e instanceof JBoo && st.E instanceof Cif)
+        {
+            
+        }
+        if(st.e instanceof JApp)
+        {
+            
+        }
+        if(st.e instanceof JNumber && st.E instanceof cap)
+        {
+            
+        }
+        
+        return new state(new JNumber(666), new hole());
+    }
+    
+}
 
 class COMP3010HLProgram
 {
     //Defining sorter function names for quicker test case creation
     static Joe JNum(int n)
-    {
-        return new JNumber(n);
-    }
+    {        return new JNumber(n);   }
     static Joe JA(Joe left, Joe right)
-    {
-        return new JApp(new JPrim("+"), new JConst(left, new JConst(right, new JEmpty())));
-    }
+    {     return new JApp(new JPrim("+"), new JConst(left, new JConst(right, new JEmpty())));  }
     static Joe JM(Joe left, Joe right)
-    {
-        return new JApp(new JPrim("*"), new JConst(left, new JConst(right,new JEmpty())));
-    }
-    
-    static Sxpr SApp(String oper ,Sxpr left, Sxpr right)
-    {
-        return new SConst(new SStr(oper),new SConst(left, new  SConst(right, new SEmpty())));
-    }
-    
+    {    return new JApp(new JPrim("*"), new JConst(left, new JConst(right,new JEmpty())));  }
+     static Sxpr SApp(String oper ,Sxpr left, Sxpr right)
+    {     return new SConst(new SStr(oper),new SConst(left, new  SConst(right, new SEmpty()))); }  
     static Sxpr SN(int n)
-    {
-        return new SENum(n);
-    }
+    { return new SENum(n);}
     static Sxpr SA(Sxpr left, Sxpr right)
-    {
-        return SApp("+",left, right);
-    }
+    {    return SApp("+",left, right);}
     static Sxpr SM(Sxpr left, Sxpr right)
-    {
-        return SApp("*",left, right);
-    }
+    {    return SApp("*",left, right);}
     static Sxpr SIf(Sxpr cond, Sxpr left, Sxpr right)
-    {
-        return new SConst(new SStr("if"), new SConst(cond, new SConst(left, new SConst(right, new SEmpty()))));
-    }
+    {    return new SConst(new SStr("if"), new SConst(cond, new SConst(left, new SConst(right, new SEmpty()))));    }
     
     static Joe desugar(Sxpr se)
     {
         
         //desugar n to n
         if(se instanceof SENum)
-        {
-            return JNum(((SENum) se).n);
-        }
+        {    return JNum(((SENum) se).n);    }
         
         
         //desugar + SENum SEmpty to desugar(SENum)
