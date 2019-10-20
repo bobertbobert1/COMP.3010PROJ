@@ -327,23 +327,61 @@ class CC0
         return st.E.plug(st.e);
     }
     
+    public Joe interp(Joe e)
+    {
+        state st = inject(e);
+        while(!(st.e instanceof JNumber) && !(st.E instanceof hole))
+        {
+            st = step(st);
+            st.e = st.e.step();
+        }
+        return extract(st);
+    }
+    
+    public Joe delta(Joe e)
+    {
+        Joe oper = ((JApp)e).oper;
+        Joe args = ((JApp)e).args;
+        String s = ((JPrim)oper).s;
+        int left = ((JNumber)((JConst)args).left).n;
+        int right = ((JNumber)((JConst)((JConst)args).right).left).n;
+        if(s.equals("+")) {return new JNumber(left+right);}
+        if(s.equals("*")) {return new JNumber(left*right);}
+        if(s.equals("-")) {return new JNumber(left-right);}
+        if(s.equals("/")) {return new JNumber(left/right);}
+        if(s.equals("<")) {return new JBoo(left<right);}
+        if(s.equals("<=")) {return new JBoo(left<=right);}
+        if(s.equals("==")) {return new JBoo(left==right);}
+        if(s.equals(">")) {return new JBoo(left>right);}
+        if(s.equals(">=")) {return new JBoo(left>=right);}
+        if(s.equals("!=")) {return new JBoo(left!=right);}
+        return new JNumber(666);
+    }
     public state step(state st)
     {
         if(st.e instanceof Jif)
         {
-            
+            return new state(((Jif)st.e).cond, new Cif(new hole(), ((Jif)st.e).taction, ((Jif)st.e).faction));
         }
-        if(st.e instanceof JBoo && st.E instanceof Cif)
+        if(st.e instanceof JBoo && ((JBoo)st.e).b == true && st.E instanceof Cif)
         {
-            
+            return new state(((Cif)st.E).taction, new hole());
+        }
+        if(st.e instanceof JBoo && ((JBoo)st.e).b == false && st.E instanceof Cif)
+        {
+            return new state(((Cif)st.E).faction, new hole());
         }
         if(st.e instanceof JApp)
         {
-            
+            return new state(((JConst)((JApp)st.e).args).left, new cap(new hole(), ((JApp)st.e).oper, new JEmpty(), ((JConst)((JConst)((JApp)st.e).args).right).left));
         }
-        if(st.e instanceof JNumber && st.E instanceof cap)
+        if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).left instanceof JEmpty)
         {
-            
+            return new state(((cap)st.E).right, new cap(new hole(), ((JApp)st.e).oper, st.e, JEmpty()));
+        }
+        if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).right instanceof JEmpty)
+        {
+            return new state(delta(st.E.plug(st.e)), new hole());
         }
         
         return new state(new JNumber(666), new hole());
