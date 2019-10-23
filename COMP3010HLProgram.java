@@ -4,6 +4,8 @@ Nicholas Sweeney COMP3010 Project
 package comp3010hlprogram;
 
 
+import java.io.*;
+
 //SExpression for use of data structures that are Strings, empty, or constants with more SExpressions
 //Interface class contains pretty printer function
 interface Sxpr
@@ -377,7 +379,7 @@ class CC0
         }
         if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).left instanceof JEmpty)
         {
-            return new state(((cap)st.E).right, new cap(new hole(), ((JApp)st.e).oper, st.e, JEmpty()));
+            return new state(((cap)st.E).right, new cap(new hole(), ((JApp)st.e).oper, st.e, new JEmpty()));
         }
         if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).right instanceof JEmpty)
         {
@@ -578,6 +580,14 @@ class COMP3010HLProgram
         return terp(finale);
     }
     
+    static void emit(Joe e) throws IOException
+    {
+        FileWriter fw = new FileWriter("ll.c");
+        PrintWriter pw = new PrintWriter(fw);
+        
+        pw.printf("#include <stdio.h>;\n");
+    }
+    
     //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
     static int tests_passed = 0;
     static void test(Sxpr se, Joe expect)
@@ -601,45 +611,9 @@ class COMP3010HLProgram
     }
     
     //Main runs all tests
-    public static void main(String[] args) 
+    public static void main(String[] args) throws IOException 
     {
-        test_num(SN(42), 42);
-        test_num(SN(7), 7);
-        test_num(SA(SN(42),SN(0)), 42);
-        test_num(SM(SN(42),SN(0)), 0);
-        test_num(SA(SM(SN(42),SN(0)),SN(0)), 0);
-        test_num(SA(SM(SN(42),SN(0)),SA(SM(SN(42),SN(0)),SN(0))), 0);
-
-        test_num(SA(SN(42),SN(1)), 43);
-        test_num(SM(SN(42),SN(1)), 42);
-        test_num(SA(SM(SN(42),SN(1)),SN(1)), 43);
-        test_num(SA(SM(SN(42),SN(1)),SA(SM(SN(42),SN(1)),SN(1))), 85);
-
-        test_num(new SConst(new SStr("+"), new SEmpty()), 0);
-        test_num(new SConst(new SStr("*"), new SEmpty()), 1);
-        Sxpr three_things =
-          new SConst(new SENum(1),
-                      new SConst(new SENum(2),
-                                  new SConst(new SENum(4),
-                                              new SEmpty())));
-        test_num(new SConst(new SStr("+"), three_things), 7);
-        test_num(new SConst(new SStr("*"), three_things), 8);
-
-        test_num(new SConst(new SStr("-"), new SConst(new SENum(4), new SEmpty())), -4);
-        test_num(new SConst(new SStr("-"), new SConst(new SENum(4), new SConst(new SENum(2), new SEmpty()))), 2);
-
-        test(new SConst(new SStr("=="), new SConst(new SENum(4), new SConst(new SENum(2), new SEmpty()))), new JBoo(false));
-        test(new SConst(new SStr("=="), new SConst(new SENum(4), new SConst(new SENum(4), new SEmpty()))), new JBoo(true));
-
-        test(SApp("==", new SENum(4), new SENum(4)), new JBoo(true));
-        test(SIf(SApp("==", new SENum(4), new SENum(4)),
-                 new SENum(5),
-                 new SENum(6)), JNum(5));
-        test(SIf(SApp("==", new SENum(4), new SENum(2)),
-                 new SENum(5),
-                 new SENum(6)), JNum(6));
-
-        System.out.println(tests_passed + " tests passed!");
-       
+        Joe e = JA(JNum(1), JNum(1));
+        emit(e);
     }
 }
