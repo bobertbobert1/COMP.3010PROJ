@@ -36,8 +36,3 @@ struct
 	JApp a;
 	Jif i;
 }e;
-int main(int argc, char* argv[])
-{
-	printf("Initial commit p0g\n");
-	
-}
