@@ -590,19 +590,19 @@ class COMP3010HLProgram
         
         if(e instanceof JNumber)
         {
-            fw.write("\tExpression = "+printJNumber(e)+";\n");
+            fw.write("\texpr test = "+printJNumber(e)+";\n");
         }
         if(e instanceof JBoo)
         {
-            fw.write("\tExpression = "+printJBoo(e)+";\n");
+            fw.write("\texpr test = "+printJBoo(e)+";\n");
         }
         if(e instanceof JApp)
         {
-             fw.write("\tExpression = "+printJApp(e)+";\n");
+             fw.write("\texpr test = "+printJApp(e)+";\n");
         }
         if(e instanceof Jif)
         {
-             fw.write("\tExpression = "+printJif(e)+";\n");
+             fw.write("\texpr test = "+printJif(e)+";\n");
         }
         fw.write("return 0;\n}");
         fw.close();
