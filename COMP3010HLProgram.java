@@ -582,10 +582,153 @@ class COMP3010HLProgram
     
     static void emit(Joe e) throws IOException
     {
-        FileWriter fw = new FileWriter("ll.c");
-        PrintWriter pw = new PrintWriter(fw);
+        FileWriter fw = new FileWriter("output.c");
+
+        fw.write("#include <stdio.h>;\n");
+        fw.write("#include "+'"'+"ll.c"+'"'+";\n ");
+        fw.write("int main(int argc, char* argv[]) {\n");
         
-        pw.printf("#include <stdio.h>;\n");
+        if(e instanceof JNumber)
+        {
+            fw.write("\tExpression = "+printJNumber(e)+";\n");
+        }
+        if(e instanceof JBoo)
+        {
+            fw.write("\tExpression = "+printJBoo(e)+";\n");
+        }
+        if(e instanceof JApp)
+        {
+             fw.write("\tExpression = "+printJApp(e)+";\n");
+        }
+        if(e instanceof Jif)
+        {
+             fw.write("\tExpression = "+printJif(e)+";\n");
+        }
+        fw.write("return 0;\n}");
+        fw.close();
+    }
+    static String printJNumber(Joe e)
+    {
+        return "CJNum("+((JNumber)e).n+")";
+    }
+    static String printJBoo(Joe e)
+    {
+        return "CJBoo("+((JBoo)e).b+")";
+    }
+    static String printJApp(Joe e)
+    {
+        String output = "CJApp(";
+        
+        //Operator
+        output+="CJPrim("+((JPrim)((JApp)e).oper).s+"))";
+        
+        //Left
+        if(((JConst)((JApp)e).args).left instanceof JApp)
+        {
+            output+=", "+printJApp(((JConst)((JApp)e).args).left);
+        }
+        if(((JConst)((JApp)e).args).left instanceof Jif)
+        {
+            output+=", "+printJif(((JConst)((JApp)e).args).left);
+        }
+        if(((JConst)((JApp)e).args).left instanceof JNumber)
+        {
+            output+=", "+printJNumber(((JConst)((JApp)e).args).left);
+        }
+        if(((JConst)((JApp)e).args).left instanceof JBoo)
+        {
+            output+=", "+printJBoo(((JConst)((JApp)e).args).left);
+        }
+        
+        //Right
+        
+        if(((JConst)((JConst)((JApp)e).args).right).left instanceof JApp)
+        {
+            output+=", "+printJApp(((JConst)((JConst)((JApp)e).args).right).left);
+        }
+        if(((JConst)((JConst)((JApp)e).args).right).left instanceof Jif)
+        {
+            output+=", "+printJif(((JConst)((JConst)((JApp)e).args).right).left);
+        }
+        if(((JConst)((JConst)((JApp)e).args).right).left instanceof JNumber)
+        {
+            output+=", "+printJNumber(((JConst)((JConst)((JApp)e).args).right).left);
+        }
+        if(((JConst)((JConst)((JApp)e).args).right).left instanceof JBoo)
+        {
+            output+=", "+printJBoo(((JConst)((JConst)((JApp)e).args).right).left);
+        }
+        
+        output+=")";
+        return output;
+    }
+    static String printJif(Joe e)
+    {
+        String output = "CJIf(";
+        
+        //cond
+        if(((Jif)e).cond instanceof Jif)
+        {
+            output+=", "+printJif(((Jif)e).cond);
+        }
+        
+        if(((Jif)e).cond instanceof JApp)
+        {
+            output+=", "+printJApp(((Jif)e).cond);
+        }
+        
+        if(((Jif)e).cond instanceof JNumber)
+        {
+            output+=", "+printJNumber(((Jif)e).cond);
+        }
+        
+        if(((Jif)e).cond instanceof JBoo)
+        {
+            output+=", "+printJBoo(((Jif)e).cond);
+        }
+        
+        //taction
+        if(((Jif)e).taction instanceof Jif)
+        {
+            output+=", "+printJif(((Jif)e).taction);
+        }
+        
+        if(((Jif)e).taction instanceof JApp)
+        {
+            output+=", "+printJApp(((Jif)e).taction);
+        }
+        
+        if(((Jif)e).taction instanceof JNumber)
+        {
+            output+=", "+printJNumber(((Jif)e).taction);
+        }
+        
+        if(((Jif)e).taction instanceof JBoo)
+        {
+            output+=", "+printJBoo(((Jif)e).taction);
+        }
+        
+        //faction
+        if(((Jif)e).faction instanceof Jif)
+        {
+            output+=", "+printJif(((Jif)e).faction);
+        }
+        
+        if(((Jif)e).faction instanceof JApp)
+        {
+            output+=", "+printJApp(((Jif)e).faction);
+        }
+        
+        if(((Jif)e).faction instanceof JNumber)
+        {
+            output+=", "+printJNumber(((Jif)e).faction);
+        }
+        
+        if(((Jif)e).faction instanceof JBoo)
+        {
+            output+=", "+printJBoo(((Jif)e).faction);
+        }
+        return output;
     }
     
     //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
