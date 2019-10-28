@@ -2,11 +2,11 @@
 Nicholas Sweeney LL Code
 */
 #include <stdio.h>
+#include <string.h>
 
 
-typedef enum(FALSE, TRUE)bool;
 typedef enum{plus, sub, mult, div, less, lessE, equal, greatE, great}prim;
-enum{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck}determinant;
+enum{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool}determinant;
 typedef struct {enum determinant d;}expr;
 
 struct
@@ -173,4 +173,72 @@ expr* CKUncheck(expr* args)
 	e->curr = curr;
 	e->next = next;
 	return e;
+}
+
+expr* delta(expr* oper, expr* check)
+{
+    KCheck* c = (KCheck*)check;
+    KCheck* n = (KCheck*)(c->next);
+    JPrim* primoper = (prim*)oper;
+    char* sign = primoper->p;
+    JNum* left = c->data;
+    JNum* right = n->data;
+    
+    if (!strcmp(p, "+")) 
+    {
+        return CKNum(left->n + right->n); 
+    }
+    if (!strcmp(p, "-")) 
+    { 
+        return CKNum(left->n - right->n); 
+    }
+    if (!strcmp(p, "*")) 
+    { 
+        return CKNum(left->n * right->n); 
+    }
+    if (!strcmp(p, "/")) 
+    { 
+        return CKNum(left->n / right->n); 
+    }
+    if (!strcmp(p, "<")) 
+    { 
+        return CKBool(left->n < right->n); 
+    }
+    if (!strcmp(p, "<=")) 
+    { 
+        return CKBool(left->n <= right->n); 
+    }
+    if (!strcmp(p, "==")) 
+    { 
+        return CKBool(left->n == right->n); 
+    }
+    if (!strcmp(p, ">")) 
+    { 
+        return CKBool(left->n > right->n); 
+    }
+    if (!strcmp(p, ">=")) 
+    { 
+        return CKBool(left->n >= right->n); 
+    }
+    if (!strcmp(p, "!=")) 
+    { 
+        return CKBool(left->n != right->n); 
+    }
+
+    return CKNum(666);
+}
+
+void eval(expr* e)
+{
+    while(1)
+    {
+        switch(e->d)
+        {
+        case Dapp:
+        case Dif:
+        case Dnum:
+        case DBoo:
+        case Dprim:
+        }
+    }
 }
