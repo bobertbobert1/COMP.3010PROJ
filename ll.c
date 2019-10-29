@@ -4,7 +4,6 @@ Nicholas Sweeney LL Code
 #include <stdio.h>
 #include <string.h>
 
-
 typedef enum{plus, sub, mult, div, less, lessE, equal, greatE, great}prim;
 enum{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool}determinant;
 typedef struct {enum determinant d;}expr;
@@ -18,7 +17,7 @@ struct
 struct
 {
 	expr h;
-	bool v;
+	expr v;
 }JBoo;
 
 struct
@@ -228,17 +227,88 @@ expr* delta(expr* oper, expr* check)
     return CKNum(666);
 }
 
+int booq(expr* e)
+{
+    switch(e->d)
+    {
+    case DBoo:
+    {
+        return e->v;
+    }
+    case DNum:
+    {
+        return e->n;
+    }
+    default:
+    {
+        return 0;
+    }
+    }
+}
 void eval(expr* e)
 {
+    expr *continue = CKRet();
+
     while(1)
     {
         switch(e->d)
         {
         case Dapp:
+        {
+            continue = CKApp(NULL, NULL, CKUncheck(e->left, CKUncheck(e->right, NULL)), continue);
+            break;
+        }
         case Dif:
+        {
+            continue = CKif(e->cond, e->taction, e->faction, continue);
+            break;
+        }
         case Dnum:
         case DBoo:
         case Dprim:
+        }
+            switch(continue->d)
+            {
+            case DKRet:
+            {
+                return;
+            }
+            case DKApp:
+            {
+                expr* checked = continue->check;
+                expr* oper = continue->oper;
+
+                if(!oper)
+                {
+                    oper = e;
+                }
+                if(oper!=e)
+                {
+                    CKCheck(e, checked);
+                }
+                if(continue->uncheck == NULL)
+                {
+                    e = delta(continue->oper, continue->check);
+                    continue = continue->k;
+                    break;
+                }
+                if(continue->uncheck != NULL)
+                {
+                    KUncheck* unch = continue->unchecked;
+                    e = unch->data;
+                    unch = unch->next;
+                    break;
+                }
+                break;
+            }
+            case DKif:
+            {
+                e = boostate(e) ? continue->taction : continue->faction;
+                continue = continue->k;
+                break;
+            }
+            
+            }    
         }
     }
 }
