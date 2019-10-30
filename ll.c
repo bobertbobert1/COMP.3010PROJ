@@ -2,10 +2,11 @@
 Nicholas Sweeney LL Code
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-typedef enum{plus, sub, mult, div, less, lessE, equal, greatE, great}prim;
-enum{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool}determinant;
+typedef enum{plus, sub, mult, divid, less, lessE, equal, greatE, great}prim;
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool};
 typedef struct {enum determinant d;}expr;
 
 struct
