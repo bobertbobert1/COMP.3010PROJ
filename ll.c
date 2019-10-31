@@ -2,34 +2,34 @@
 Nicholas Sweeney LL Code
 */
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
-typedef enum{plus, sub, mult, divid, less, lessE, equal, greatE, great}prim;
+
 enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool};
 typedef struct {enum determinant d;}expr;
 
-struct
+typedef struct
 {
 	expr d;
 	int n;
 }JNum;
 	
-struct
-{
-	expr h;
-	expr v;
-}JBoo;
-
-struct
+typedef struct
 {
 	expr d;
-	prim* oper;
+	int v;
+}JBoo;
+
+typedef struct
+{
+	expr d;
+	expr* oper;
 	expr* left;
 	expr* right;
 }JApp;
 	
-struct
+typedef struct
 {
 	expr d;
 	expr* cond;
@@ -37,18 +37,18 @@ struct
 	expr* faction;
 }Jif;
 
-struct
+typedef struct
 {
 	expr d;
-	prim p;
+	char* p;
 }JPrim;
 
-struct
+typedef struct
 {
 	expr d;
 }KRet;
 
-struct
+typedef struct
 {
 	expr d;
 	expr* cond;
@@ -57,17 +57,16 @@ struct
 	expr* k;
 }Kif;
 
-struct
+typedef struct
 {
 	expr d;
 	expr* oper;
-	expr* env;
 	expr* check;
 	expr* uncheck;
 	expr* k;
 }KApp;
 
-struct
+typedef struct
 {
 	expr d;
 	expr* curr;
@@ -75,7 +74,7 @@ struct
 	
 }KCheck;
 
-struct
+typedef struct
 {
 	expr d;
 	expr* curr;
@@ -86,159 +85,181 @@ struct
 
 expr* CJApp(expr* oper, expr* left, expr* right)
 {
+	printf("Made JApp\n");
 	JApp* e = malloc(sizeof(JApp));
 	e->d.d=Dapp;
 	e->oper = oper;
 	e->left = left;
 	e->right = right;
-	return e;
+	return (expr*)e;
 	
 }
 
 expr* CJif(expr* cond, expr* taction, expr* faction)
 {
+	printf("Made Jif\n");
 	Jif* e = malloc(sizeof(Jif));
 	e->d.d=Dif;
 	e->cond = cond;
 	e->taction = taction;
 	e->faction = faction;
-	return e;
+	return (expr*)e;
 }
 
-expr* CJNum(expr* n)
+expr* CJNum(int n)
 {
-	JNum* e malloc(sizeof(JNum));
+	printf("Made JNum(%d)\n",n);
+	JNum* e = malloc(sizeof(JNum));
 	e->d.d=Dnum;
 	e->n = n;
-	return e;
+	return (expr*)e;
 }
 
-expr* CJBoo(expr* b)
+expr* CJBoo(int b)
 {
-	JBoo* e malloc(sizeof(JBoo));
+	if(b==0)
+	{
+		printf("Made JBoo(FALSE)\n");
+	}
+	else
+	{
+		printf("Made JBoo(TRUE)\n");
+	}
+	JBoo* e = malloc(sizeof(JBoo));
 	e->d.d=Dboo;
 	e->v = b;
+	return (expr*)e;
 }
 
-expr* CJPrim(prim* p)
+expr* CJPrim(char* p)
 {
-	JPrim* e malloc(sizeof(JPrim));
+	printf("Made JPrim(%s)\n",p);
+	JPrim* e = malloc(sizeof(JPrim));
 	e->d.d=Dprim;
 	e->p = p;
-	return e;
+	return (expr*)e;
 }
 
 expr* CKRet()
 {
+	printf("Made KRet\n");
 	KRet* e = malloc(sizeof(KRet));
-	o->d.d = DKRet;
-	return e;
+	e->d.d = DKRet;
+	return (expr*)e;
 }
 
 expr* CKif(expr* cond, expr* taction, expr* faction, expr* k)
 {
+	printf("Made Kif\n");
 	Kif* e = malloc(sizeof(Kif));
 	e->d.d = DKif;
 	e->cond = cond;
 	e->taction = taction;
 	e->faction = faction;
 	e->k = k;
-	return e;
+	return (expr*)e;
 }
 
-expr* CKApp(expr* oper, expr* env, expr* check, expr* uncheck)
+expr* CKApp(expr* oper, expr* check, expr* uncheck, expr* k)
 {
+	printf("Made KApp\n");
 	KApp* e = malloc(sizeof(KApp));
 	e->d.d = DKApp;
 	e->oper = oper;
-	e->env = env;
+	e->k = k;
 	e->check = check;
 	e->uncheck = uncheck;
-	return e;
+	return (expr*)e;
 }
 
 expr* CKCheck(expr* curr, expr* next)
 {
+	printf("Made KCheck\n");
 	KCheck* e = malloc(sizeof(KCheck));
 	e->d.d = DKCheck;
 	e->curr = curr;
 	e->next = next;
-	return e;
+	return (expr*)e;
 }
 
-expr* CKUncheck(expr* args)
+expr* CKUncheck(expr* curr, expr* next)
 {
+	printf("Made KUncheck\n");
 	KUncheck* e = malloc(sizeof(KUncheck));
 	e->d.d = DKUncheck;
 	e->curr = curr;
 	e->next = next;
-	return e;
+	return (expr*)e;
 }
 
 expr* delta(expr* oper, expr* check)
 {
     KCheck* c = (KCheck*)check;
     KCheck* n = (KCheck*)(c->next);
-    JPrim* primoper = (prim*)oper;
+    JPrim* primoper = (JPrim*)oper;
     char* sign = primoper->p;
-    JNum* left = c->data;
-    JNum* right = n->data;
+    JNum* left = (JNum*)c->curr;
+    JNum* right = (JNum*)n->next;
+	int l = left->n;
+	int r = right->n;
     
-    if (!strcmp(p, "+")) 
+    if (!strcmp(sign, "+")) 
     {
-        return CKNum(left->n + right->n); 
+        return CJNum(l + r); 
     }
-    if (!strcmp(p, "-")) 
+    if (!strcmp(sign, "-")) 
     { 
-        return CKNum(left->n - right->n); 
+        return CJNum(l - r); 
     }
-    if (!strcmp(p, "*")) 
+    if (!strcmp(sign, "*")) 
     { 
-        return CKNum(left->n * right->n); 
+        return CJNum(l * r); 
     }
-    if (!strcmp(p, "/")) 
+    if (!strcmp(sign, "/")) 
     { 
-        return CKNum(left->n / right->n); 
+        return CJNum(l / r); 
     }
-    if (!strcmp(p, "<")) 
+    if (!strcmp(sign, "<")) 
     { 
-        return CKBool(left->n < right->n); 
+        return CJBoo(l < r); 
     }
-    if (!strcmp(p, "<=")) 
+    if (!strcmp(sign, "<=")) 
     { 
-        return CKBool(left->n <= right->n); 
+        return CJBoo(l <= r); 
     }
-    if (!strcmp(p, "==")) 
+    if (!strcmp(sign, "==")) 
     { 
-        return CKBool(left->n == right->n); 
+        return CJBoo(l == r); 
     }
-    if (!strcmp(p, ">")) 
+    if (!strcmp(sign, ">")) 
     { 
-        return CKBool(left->n > right->n); 
+        return CJBoo(l > r); 
     }
-    if (!strcmp(p, ">=")) 
+    if (!strcmp(sign, ">=")) 
     { 
-        return CKBool(left->n >= right->n); 
+        return CJBoo(l >= r); 
     }
-    if (!strcmp(p, "!=")) 
+    if (!strcmp(sign, "!=")) 
     { 
-        return CKBool(left->n != right->n); 
+        return CJBoo(l != r); 
     }
 
-    return CKNum(666);
+    return CJNum(666);
 }
 
 int booq(expr* e)
 {
     switch(e->d)
     {
-    case DBoo:
+    case Dboo:
     {
-        return e->v;
+		JBoo* tempo = (JBoo*)e;
+        return tempo->v;
     }
-    case DNum:
+    case Dnum:
     {
-        return e->n;
+		JNum* tempo = (JNum*)e;
+        return tempo->n;
     }
     default:
     {
@@ -246,70 +267,75 @@ int booq(expr* e)
     }
     }
 }
+
+//LL Interpreter
 void eval(expr* e)
 {
-    expr *continue = CKRet();
-
+	
+	expr* end = CKRet();
+	
     while(1)
     {
         switch(e->d)
         {
         case Dapp:
-        {
-            continue = CKApp(NULL, NULL, CKUncheck(e->left, CKUncheck(e->right, NULL)), continue);
-            break;
-        }
+		{
+			JApp* tmp = (JApp*)e;
+			end = CKApp(NULL, NULL, CKUncheck(tmp->left, CKUncheck(tmp->right, NULL)), end);
+			break;
+		}
         case Dif:
-        {
-            continue = CKif(e->cond, e->taction, e->faction, continue);
-            break;
-        }
+		{
+			Jif* tmp = (Jif*)e;
+			end = CKif(tmp->cond, tmp->taction, tmp->faction, end);
+			break;
+		}
         case Dnum:
-        case DBoo:
+        case Dboo:
         case Dprim:
+		{
+			switch(end->d)
+			{
+				
+			case DKRet:
+			{
+				return;
+			}
+			case DKApp:
+			{
+				KApp* tmp2 = (KApp*)end;
+				if(!tmp2->oper)
+				{
+					tmp2->oper = e;
+				}
+				else
+				{
+					expr* checker = CKCheck(e, checker);
+				}
+				if(tmp2->uncheck == NULL)
+				{
+					e = delta(tmp2->oper,  tmp2->uncheck);
+					end = tmp2->k;
+					break;
+				}
+				else
+				{
+					KUncheck* unchecker = (KUncheck*)tmp2->uncheck;
+					e = unchecker->curr;
+					unchecker = (KUncheck*)unchecker->next;
+					break;
+				}
+				break;
+			}
+			case DKif:
+			{
+				Kif* tmp2 = (Kif*)end;
+				e = booq(e) ? tmp2->taction : tmp2->faction;
+				end = tmp2->k;
+				break;
+			}
+			}
         }
-            switch(continue->d)
-            {
-            case DKRet:
-            {
-                return;
-            }
-            case DKApp:
-            {
-                expr* checked = continue->check;
-                expr* oper = continue->oper;
-
-                if(!oper)
-                {
-                    oper = e;
-                }
-                if(oper!=e)
-                {
-                    CKCheck(e, checked);
-                }
-                if(continue->uncheck == NULL)
-                {
-                    e = delta(continue->oper, continue->check);
-                    continue = continue->k;
-                    break;
-                }
-                if(continue->uncheck != NULL)
-                {
-                    KUncheck* unch = continue->unchecked;
-                    e = unch->data;
-                    unch = unch->next;
-                    break;
-                }
-                break;
-            }
-            case DKif:
-            {
-                e = boostate(e) ? continue->taction : continue->faction;
-                continue = continue->k;
-                break;
-            }
-            
-            }    
-        }
-    }
+		}
+	}
 }

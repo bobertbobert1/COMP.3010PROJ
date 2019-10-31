@@ -584,27 +584,31 @@ class COMP3010HLProgram
     {
         FileWriter fw = new FileWriter("output.c");
 
-        fw.write("#include <stdio.h>;\n");
-        fw.write("#include "+'"'+"ll.c"+'"'+";\n ");
-        fw.write("int main(int argc, char* argv[]) {\n");
+        fw.write("#include <stdio.h>\n");
+        fw.write("#include "+'"'+"ll.c"+'"'+"\n ");
+        fw.write("int main(int argc, char* argv[]) \n{\n");
         
         if(e instanceof JNumber)
         {
-            fw.write("\texpr test = "+printJNumber(e)+";\n");
+            fw.write("\texpr* test1 = "+printJNumber(e)+";\n");
+            fw.write("\teval(test1);\n");
         }
         if(e instanceof JBoo)
         {
-            fw.write("\texpr test = "+printJBoo(e)+";\n");
+            fw.write("\texpr* test2 = "+printJBoo(e)+";\n");
+            fw.write("\teval(test2);\n");
         }
         if(e instanceof JApp)
         {
-             fw.write("\texpr test = "+printJApp(e)+";\n");
+             fw.write("\texpr* test3 = "+printJApp(e)+";\n");
+             fw.write("\teval(test3);\n");
         }
         if(e instanceof Jif)
         {
-             fw.write("\texpr test = "+printJif(e)+";\n");
+             fw.write("\texpr* test4 = "+printJif(e)+";\n");
+             fw.write("\teval(test4);\n");
         }
-        fw.write("return 0;\n}");
+        fw.write("\treturn 0;\n}");
         fw.close();
     }
     static String printJNumber(Joe e)
@@ -620,7 +624,7 @@ class COMP3010HLProgram
         String output = "CJApp(";
         
         //Operator
-        output+="CJPrim("+((JPrim)((JApp)e).oper).s+"))";
+        output+="CJPrim("+'"'+((JPrim)((JApp)e).oper).s+'"'+")";
         
         //Left
         if(((JConst)((JApp)e).args).left instanceof JApp)
