@@ -62,6 +62,7 @@ typedef struct
 	expr d;
 	expr* oper;
 	expr* check;
+	expr* env;
 	expr* uncheck;
 	expr* k;
 }KApp;
@@ -160,13 +161,14 @@ expr* CKif(expr* cond, expr* taction, expr* faction, expr* k)
 	return (expr*)e;
 }
 
-expr* CKApp(expr* oper, expr* check, expr* uncheck, expr* k)
+expr* CKApp(expr* oper, expr* check, expr* env, expr* uncheck, expr* k)
 {
 	printf("Made KApp\n");
 	KApp* e = malloc(sizeof(KApp));
 	e->d.d = DKApp;
 	e->oper = oper;
 	e->check = check;
+	e->env = env;
 	e->uncheck = uncheck;
 	e->k = k;
 	return (expr*)e;
@@ -261,6 +263,7 @@ int booq(expr* e)
 		JNum* tempo = (JNum*)e;
         return tempo->n;
     }
+	case Dprim:
     default:
     {
         return 0;
@@ -269,27 +272,27 @@ int booq(expr* e)
 }
 
 //LL Interpreter
-void eval(expr* e)
+void eval(expr** e)
 {
 	
-	expr* end = CKRet();
+	expr *end = CKRet();
+	expr *env = NULL;
 	
     while(1)
     {
-        switch(e->d)
+        switch((*e)->d)
         {
         case Dapp:
 		{
-			JApp* tmp = (JApp*)e;
-			end = CKApp(NULL, NULL, CKUncheck(tmp->left, NULL), tmp->right);
-			eval(end);
+			JApp* tmp = (JApp*)(*e);
+			(*e) = tmp->oper;
+			end = CKApp(NULL, NULL, env, CKUncheck(tmp->left, CKUncheck(tmp->right, NULL)), end);
 			break;
 		}
         case Dif:
 		{
 			Jif* tmp = (Jif*)e;
-			end = CKif(tmp->cond, tmp->taction, tmp->faction, end);
-			eval(end);
+			(*e) = CKif(env, tmp->taction, tmp->faction, end);
 			break;
 		}
         case Dnum:
@@ -301,6 +304,7 @@ void eval(expr* e)
 				
 			case DKRet:
 			{
+				printf("e = %d\n",((JNum*)(*e))->n);
 				return;
 			}
 			case DKApp:
@@ -310,29 +314,28 @@ void eval(expr* e)
 				expr* checker = tmp2->check;
 				if(!poper)
 				{
-					poper = e;
+					poper = (*e);
 					tmp2->oper = poper;
 				}
 				else
 				{
-					checker = CKCheck(e, checker);
+					checker = CKCheck((*e), checker);
+					tmp2->check = checker;
 				}
 				if(tmp2->uncheck == NULL)
 				{
-					e = delta(tmp2->oper,  tmp2->check);
+					(*e) = delta(tmp2->oper,  tmp2->check);
+					env = tmp2->env;
 					end = tmp2->k;
-					eval(end);
 					break;
 				}
 				else
 				{
 					KUncheck* unchecker = (KUncheck*)tmp2->uncheck;
-					e = unchecker->curr;
-					tmp2->check = CKCheck(unchecker->curr, tmp2->check);
+					(*e) = unchecker->curr;
 					unchecker = (KUncheck*)unchecker->next;
 					tmp2->uncheck = unchecker;
 					end = (expr*)tmp2;
-					eval(end);
 					break;
 				}
 				break;
@@ -340,14 +343,10 @@ void eval(expr* e)
 			case DKif:
 			{
 				Kif* tmp2 = (Kif*)end;
-				e = booq(e) ? tmp2->taction : tmp2->faction;
+				(*e) = booq((*e)) ? tmp2->taction : tmp2->faction;
+				env = tmp2->cond;
 				end = tmp2->k;
-				eval(end);
 				break;
-			}
-			case DKUncheck:
-			{
-				return;
 			}
 			}
         }
