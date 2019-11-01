@@ -390,6 +390,78 @@ class CC0
     }
     
 }
+class Define
+{
+    Joe oper;
+    Joe args;
+    Joe e;
+    
+    public Define(Joe oper, Joe args, Joe e)
+    {
+        this.oper = oper;
+        this.args = args;
+        this.e = e;
+    }
+    
+    public String pp()
+    {
+        return "Define("+oper.pp()+ ", "+args.pp()+") ("+e.pp()+")";
+    }
+}
+
+class JOper implements Joe
+{
+    public String s;
+    public JOper(String s)
+    {
+        this.s = s;
+    }
+    public Joe interp()
+    {
+        return this;
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public String pp()
+    {
+        return ""+s;
+    } 
+}
+
+class JVar implements Joe
+{
+    public String s;
+    public JVar(String s)
+    {
+        this.s = s;
+    }
+    public Joe interp()
+    {
+        return this;
+    }
+    public Boolean isEqual()
+    {
+        return false;
+    }
+    public Joe step()
+    {
+        return this;
+    }
+    public String pp()
+    {
+        return ""+s;
+    }
+    
+}
 
 class COMP3010HLProgram
 {

@@ -6,7 +6,7 @@ Nicholas Sweeney LL Code
 #include <stdlib.h>
 
 
-enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool};
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef};
 typedef struct {enum determinant d;}expr;
 
 typedef struct
@@ -43,6 +43,25 @@ typedef struct
 	char* p;
 }JPrim;
 
+typedef struct
+{
+	expr d;
+	char* s;
+}JOper;
+
+typedef struct
+{
+	expr d;
+	char* s;
+}JVar;
+
+typedef struct
+{
+	expr d;
+	expr* oper;
+	expr* args;
+	expr* e;
+}JDefine;
 typedef struct
 {
 	expr d;
@@ -139,6 +158,36 @@ expr* CJPrim(char* p)
 	e->d.d=Dprim;
 	e->p = p;
 	return (expr*)e;
+}
+
+expr* CJOper(char* s)
+{
+	printf("Made Oper\n");
+	JOper* e = malloc(sizeof(JOper));
+	e->d.d = Doper;
+	e->s = s;
+	return (expr*)e;
+}
+
+expr* CJVar(char* s)
+{
+	printf("Made Var\n");
+	JVar* e = malloc(sizeof(JVar));
+	e->d.d = Dvar;
+	e->s = s;
+	return (expr*)e;
+}
+
+expr* CJDefine(expr* oper, expr* args, expr* e)
+{
+	printf("Made JDefine\n");
+	JDefine* ee = malloc(sizeof(JDefine));
+	ee->d.d = Djdef;
+	ee->oper = oper;
+	ee->args = args;
+	ee->e = e;
+	return (expr*)ee;
+	
 }
 
 expr* CKRet()
@@ -298,6 +347,7 @@ void eval(expr** e)
         case Dnum:
         case Dboo:
         case Dprim:
+		case Doper:
 		{
 			switch(end->d)
 			{
