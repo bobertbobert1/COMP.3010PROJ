@@ -592,6 +592,8 @@ class COMP3010HLProgram
         {
             fw.write("\texpr* test1 = "+printJNumber(e)+";\n");
             fw.write("\teval(test1);\n");
+            fw.write("\tJNum* result = (JNum*)test1;\n");
+            fw.write("\tprintf("+'"'+"Result of JNumber is %d"+'"'+", result->n);\n");
         }
         if(e instanceof JBoo)
         {
@@ -602,6 +604,8 @@ class COMP3010HLProgram
         {
              fw.write("\texpr* test3 = "+printJApp(e)+";\n");
              fw.write("\teval(test3);\n");
+             fw.write("\tJNum* result = (JNum*)test3;\n");
+             fw.write("\tprintf("+'"'+"Result of JApp is %d"+'"'+", result->n);\n");
         }
         if(e instanceof Jif)
         {

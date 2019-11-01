@@ -166,9 +166,9 @@ expr* CKApp(expr* oper, expr* check, expr* uncheck, expr* k)
 	KApp* e = malloc(sizeof(KApp));
 	e->d.d = DKApp;
 	e->oper = oper;
-	e->k = k;
 	e->check = check;
 	e->uncheck = uncheck;
+	e->k = k;
 	return (expr*)e;
 }
 
@@ -281,13 +281,15 @@ void eval(expr* e)
         case Dapp:
 		{
 			JApp* tmp = (JApp*)e;
-			end = CKApp(NULL, NULL, CKUncheck(tmp->left, CKUncheck(tmp->right, NULL)), end);
+			end = CKApp(NULL, NULL, CKUncheck(tmp->left, NULL), tmp->right);
+			eval(end);
 			break;
 		}
         case Dif:
 		{
 			Jif* tmp = (Jif*)e;
 			end = CKif(tmp->cond, tmp->taction, tmp->faction, end);
+			eval(end);
 			break;
 		}
         case Dnum:
@@ -304,25 +306,33 @@ void eval(expr* e)
 			case DKApp:
 			{
 				KApp* tmp2 = (KApp*)end;
-				if(!tmp2->oper)
+				expr* poper = tmp2->oper;
+				expr* checker = tmp2->check;
+				if(!poper)
 				{
-					tmp2->oper = e;
+					poper = e;
+					tmp2->oper = poper;
 				}
 				else
 				{
-					expr* checker = CKCheck(e, checker);
+					checker = CKCheck(e, checker);
 				}
 				if(tmp2->uncheck == NULL)
 				{
-					e = delta(tmp2->oper,  tmp2->uncheck);
+					e = delta(tmp2->oper,  tmp2->check);
 					end = tmp2->k;
+					eval(end);
 					break;
 				}
 				else
 				{
 					KUncheck* unchecker = (KUncheck*)tmp2->uncheck;
 					e = unchecker->curr;
+					tmp2->check = CKCheck(unchecker->curr, tmp2->check);
 					unchecker = (KUncheck*)unchecker->next;
+					tmp2->uncheck = unchecker;
+					end = (expr*)tmp2;
+					eval(end);
 					break;
 				}
 				break;
@@ -332,7 +342,12 @@ void eval(expr* e)
 				Kif* tmp2 = (Kif*)end;
 				e = booq(e) ? tmp2->taction : tmp2->faction;
 				end = tmp2->k;
+				eval(end);
 				break;
+			}
+			case DKUncheck:
+			{
+				return;
 			}
 			}
         }
