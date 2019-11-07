@@ -59,6 +59,7 @@ interface Joe
     public Boolean isEqual();
     public Joe interp();
     public Joe step();
+    public Joe subst(JVar v, Joe e);
 }
 
 class JNumber implements Joe
@@ -72,6 +73,7 @@ class JNumber implements Joe
     public String pp() { return ""+this.n;}
     public Joe interp() { return this; }
     public Joe step() { return this; }
+    public Joe subst(JVar v, Joe e){ return this; }
 }
 class JEmpty implements Joe
 {
@@ -83,6 +85,7 @@ class JEmpty implements Joe
         return this;
     }
     public Joe step() {return this;}
+    public Joe subst(JVar v, Joe e){ return this; }
 }
 
 class JConst implements Joe
@@ -103,6 +106,7 @@ class JConst implements Joe
     {
         return this.left.step();
     }
+    public Joe subst(JVar v, Joe e){ return new JConst(left.subst(v, e),right.subst(v, e)); }
 }
 
 class JPrim implements Joe
@@ -118,6 +122,7 @@ class JPrim implements Joe
     }
     public Joe interp(){ return this;}
     public Joe step(){ return this;}
+    public Joe subst(JVar v, Joe e){ return this; }
 }
 class JBoo implements Joe 
 {
@@ -130,6 +135,7 @@ class JBoo implements Joe
     public String pp() {return "" + this.b;}
     public Joe interp(){return this;}
     public Joe step(){return this;}
+    public Joe subst(JVar v, Joe e){ return this; }
 }
 
 class Jif implements Joe
@@ -158,6 +164,7 @@ class Jif implements Joe
             return this.taction.interp();
         }
     }
+    public Joe subst(JVar v, Joe e){ return new Jif(cond.subst(v, e), taction.subst(v, e), faction.subst(v, e)); }
     
     public Joe step()
     {
@@ -243,6 +250,7 @@ class JApp implements Joe
         
         return new JNumber(666);
     }
+    public Joe subst(JVar v, Joe e){ return new JApp(oper.subst(v, e),args.subst(v, e)); }
 }
 
 //Context contains plug function for filling holes in expressions
@@ -435,6 +443,7 @@ class JOper implements Joe
     {
         return ""+s;
     } 
+    public Joe subst(JVar v, Joe e){ return this; }
 }
 
 class JVar implements Joe
@@ -460,7 +469,14 @@ class JVar implements Joe
     {
         return ""+s;
     }
-    
+    public Joe subst(JVar v, Joe e)
+    { 
+        if(this == v)
+        {
+            return e;
+        }
+        return this;
+    }
 }
 
 class COMP3010HLProgram
