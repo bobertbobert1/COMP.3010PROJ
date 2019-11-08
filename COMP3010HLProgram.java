@@ -5,6 +5,7 @@ package comp3010hlprogram;
 
 
 import java.io.*;
+import java.util.*;
 
 //SExpression for use of data structures that are Strings, empty, or constants with more SExpressions
 //Interface class contains pretty printer function
@@ -668,6 +669,8 @@ class COMP3010HLProgram
         return terp(finale);
     }
     
+    static HashMap<String, Define> smap = new HashMap<String, Define>();
+    
     static void emit(Joe e) throws IOException
     {
         FileWriter fw = new FileWriter("output.c");
@@ -704,13 +707,9 @@ class COMP3010HLProgram
         fw.close();
     }
     static String printJNumber(Joe e)
-    {
-        return "CJNum("+((JNumber)e).n+")";
-    }
+    {    return "CJNum("+((JNumber)e).n+")";    }
     static String printJBoo(Joe e)
-    {
-        return "CJBoo("+((JBoo)e).b+")";
-    }
+    {        return "CJBoo("+((JBoo)e).b+")";    }
     static String printJApp(Joe e)
     {
         String output = "CJApp(";
@@ -720,41 +719,24 @@ class COMP3010HLProgram
         
         //Left
         if(((JConst)((JApp)e).args).left instanceof JApp)
-        {
-            output+=", "+printJApp(((JConst)((JApp)e).args).left);
-        }
+        {            output+=", "+printJApp(((JConst)((JApp)e).args).left);        }
         if(((JConst)((JApp)e).args).left instanceof Jif)
-        {
-            output+=", "+printJif(((JConst)((JApp)e).args).left);
-        }
+        {            output+=", "+printJif(((JConst)((JApp)e).args).left);        }
         if(((JConst)((JApp)e).args).left instanceof JNumber)
-        {
-            output+=", "+printJNumber(((JConst)((JApp)e).args).left);
-        }
+        {            output+=", "+printJNumber(((JConst)((JApp)e).args).left);        }
         if(((JConst)((JApp)e).args).left instanceof JBoo)
-        {
-            output+=", "+printJBoo(((JConst)((JApp)e).args).left);
-        }
+        {            output+=", "+printJBoo(((JConst)((JApp)e).args).left);        }
         
         //Right
         
         if(((JConst)((JConst)((JApp)e).args).right).left instanceof JApp)
-        {
-            output+=", "+printJApp(((JConst)((JConst)((JApp)e).args).right).left);
-        }
+        {            output+=", "+printJApp(((JConst)((JConst)((JApp)e).args).right).left);        }
         if(((JConst)((JConst)((JApp)e).args).right).left instanceof Jif)
-        {
-            output+=", "+printJif(((JConst)((JConst)((JApp)e).args).right).left);
-        }
+        {            output+=", "+printJif(((JConst)((JConst)((JApp)e).args).right).left);        }
         if(((JConst)((JConst)((JApp)e).args).right).left instanceof JNumber)
-        {
-            output+=", "+printJNumber(((JConst)((JConst)((JApp)e).args).right).left);
-        }
+        {            output+=", "+printJNumber(((JConst)((JConst)((JApp)e).args).right).left);        }
         if(((JConst)((JConst)((JApp)e).args).right).left instanceof JBoo)
-        {
-            output+=", "+printJBoo(((JConst)((JConst)((JApp)e).args).right).left);
-        }
-        
+        {            output+=", "+printJBoo(((JConst)((JConst)((JApp)e).args).right).left);        }        
         output+=")";
         return output;
     }
@@ -764,66 +746,42 @@ class COMP3010HLProgram
         
         //cond
         if(((Jif)e).cond instanceof Jif)
-        {
-            output+=", "+printJif(((Jif)e).cond);
-        }
+        {            output+=", "+printJif(((Jif)e).cond);        }
         
         if(((Jif)e).cond instanceof JApp)
-        {
-            output+=", "+printJApp(((Jif)e).cond);
-        }
+        {            output+=", "+printJApp(((Jif)e).cond);        }
         
         if(((Jif)e).cond instanceof JNumber)
-        {
-            output+=", "+printJNumber(((Jif)e).cond);
-        }
+        {            output+=", "+printJNumber(((Jif)e).cond);        }
         
         if(((Jif)e).cond instanceof JBoo)
-        {
-            output+=", "+printJBoo(((Jif)e).cond);
-        }
+        {            output+=", "+printJBoo(((Jif)e).cond);        }
         
         //taction
         if(((Jif)e).taction instanceof Jif)
-        {
-            output+=", "+printJif(((Jif)e).taction);
-        }
+        {            output+=", "+printJif(((Jif)e).taction);        }
         
         if(((Jif)e).taction instanceof JApp)
-        {
-            output+=", "+printJApp(((Jif)e).taction);
-        }
+        {            output+=", "+printJApp(((Jif)e).taction);        }
         
         if(((Jif)e).taction instanceof JNumber)
-        {
-            output+=", "+printJNumber(((Jif)e).taction);
-        }
+        {            output+=", "+printJNumber(((Jif)e).taction);        }
         
         if(((Jif)e).taction instanceof JBoo)
-        {
-            output+=", "+printJBoo(((Jif)e).taction);
-        }
+        {            output+=", "+printJBoo(((Jif)e).taction);        }
         
         //faction
         if(((Jif)e).faction instanceof Jif)
-        {
-            output+=", "+printJif(((Jif)e).faction);
-        }
+        {            output+=", "+printJif(((Jif)e).faction);        }
         
         if(((Jif)e).faction instanceof JApp)
-        {
-            output+=", "+printJApp(((Jif)e).faction);
-        }
+        {            output+=", "+printJApp(((Jif)e).faction);        }
         
         if(((Jif)e).faction instanceof JNumber)
-        {
-            output+=", "+printJNumber(((Jif)e).faction);
-        }
+        {            output+=", "+printJNumber(((Jif)e).faction);        }
         
         if(((Jif)e).faction instanceof JBoo)
-        {
-            output+=", "+printJBoo(((Jif)e).faction);
-        }
+        {            output+=", "+printJBoo(((Jif)e).faction);        }
         return output;
     }
     
@@ -835,13 +793,9 @@ class COMP3010HLProgram
         //Output the sxpr desugared to joe
         Joe answer = e.interp();
         if(!answer.pp().equals(expect.pp()))
-        {
-            System.out.println(e.pp()+" = "+answer.pp()+" but should = "+expect.pp());
-        }
+        {            System.out.println(e.pp()+" = "+answer.pp()+" but should = "+expect.pp());        }
         else
-        {
-            tests_passed++;
-        }
+        {           tests_passed++;        }
     }
     
     static void test_num(Sxpr se, int n)
