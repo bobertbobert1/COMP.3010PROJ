@@ -401,26 +401,26 @@ class CC0
 }
 class Define
 {
-    Joe oper;
-    Joe args;
+    JOper oper;
     Joe e;
     
-    public Define(Joe oper, Joe args, Joe e)
+    public Define(JOper oper, Joe e)
     {
         this.oper = oper;
-        this.args = args;
         this.e = e;
     }
     
     public String pp()
     {
-        return "Define("+oper.pp()+ ", "+args.pp()+") ("+e.pp()+")";
+        return "Define("+oper.pp()+"("+e.pp()+")";
     }
 }
 
 class JOper implements Joe
 {
     public String s;
+    public Joe args;
+    
     public JOper(String s)
     {
         this.s = s;
@@ -442,7 +442,7 @@ class JOper implements Joe
     
     public String pp()
     {
-        return ""+s;
+        return s+"("+args.pp()+")";
     } 
     public Joe subst(JVar v, Joe e){ return this; }
 }
@@ -647,6 +647,24 @@ class COMP3010HLProgram
             }
         }
         
+        if(e instanceof JOper)
+        {
+            if(smap.containsKey(((JOper)e).s))
+            {
+                Define d = smap.get(((JOper)e).s);
+                Joe ee = d.e;
+                Joe enode = ((JOper)e).args;
+                Joe dnode = d.oper.args;
+                
+                while(!(enode instanceof JEmpty) && !(dnode instanceof JEmpty))
+                {
+                    ee = ee.subst(((JVar)((JConst)dnode).left), ((JConst)enode).right);
+                    enode = ((JConst)enode).right;
+                    dnode = ((JConst)dnode).right;
+                }
+                return ee;
+            }
+        }
         //Failure case
         return e;
     }
