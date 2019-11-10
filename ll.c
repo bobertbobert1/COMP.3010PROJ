@@ -8,6 +8,7 @@ Nicholas Sweeney LL Code
 
 enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef};
 typedef struct {enum determinant d;}expr;
+JDef** cmap = NULL;
 
 typedef struct
 {
@@ -46,6 +47,7 @@ typedef struct
 typedef struct
 {
 	expr d;
+	expr* args;
 	char* s;
 }JOper;
 
@@ -59,9 +61,15 @@ typedef struct
 {
 	expr d;
 	expr* oper;
-	expr* args;
+	expr* e;
+}
+typedef struct
+{
+	expr d;
+	expr* oper;
 	expr* e;
 }JDefine;
+
 typedef struct
 {
 	expr d;
@@ -160,11 +168,12 @@ expr* CJPrim(char* p)
 	return (expr*)e;
 }
 
-expr* CJOper(char* s)
+expr* CJOper(char* s, expr* args)
 {
 	printf("Made Oper\n");
 	JOper* e = malloc(sizeof(JOper));
 	e->d.d = Doper;
+	e->args = args;
 	e->s = s;
 	return (expr*)e;
 }
@@ -178,14 +187,19 @@ expr* CJVar(char* s)
 	return (expr*)e;
 }
 
-expr* CJDefine(expr* oper, expr* args, expr* e)
+expr* CJDefine(expr* oper, expr* e)
 {
 	printf("Made JDefine\n");
+	if(checkMap(oper))
+	{
+		printf("Map Error\n");
+		return 0;
+	}
 	JDefine* ee = malloc(sizeof(JDefine));
 	ee->d.d = Djdef;
 	ee->oper = oper;
-	ee->args = args;
 	ee->e = e;
+	pushMap(ee);
 	return (expr*)ee;
 	
 }
@@ -318,6 +332,16 @@ int booq(expr* e)
         return 0;
     }
     }
+}
+
+int checkMap(expr* e)
+{
+	return 0;
+}
+
+void pushMap(expr* jd)
+{
+	
 }
 
 //LL Interpreter
