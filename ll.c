@@ -8,7 +8,7 @@ Nicholas Sweeney LL Code
 
 enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef};
 typedef struct {enum determinant d;}expr;
-JDef** cmap = NULL;
+JDefine** cmap = NULL;
 
 typedef struct
 {
@@ -334,14 +334,72 @@ int booq(expr* e)
     }
 }
 
+//Checks to see if the expression is already in the map
 int checkMap(expr* e)
 {
+	CJOper* o = (CJOper*)e;
+	if(cmap==NULL)
+	{
+		cmap = malloc(sizeof(JDefine*));
+	}
+	for(int i=0; i<(sizeof(map)/sizeof(JDefine)); ++i)
+	{
+		if(strcmp(o->s, ((JOper*)cmap[i]->oper))
+		{
+			return i;
+		}
+	}
 	return 0;
 }
 
+//Updates Map with new JDef
 void pushMap(expr* jd)
 {
-	
+	JDefine** tmp = malloc(sizeof(cmap)+sizeof(JDefine*));
+	for(int i=0;i< (sizeof(cmap)/sizeof(JDefine*));++i)
+	{
+		tmp[i] = map[i];
+	}
+	tmp[i] = jd;
+	free(map);
+	cmap = tmp;
+}
+
+expr* subst(expr* e, expr* x, expr* v)
+{
+	switch(e->d)
+	{
+		case Dapp:
+		{
+			JApp* tmp = (JApp*)e;
+			return CJApp(subst(tmp->oper, x, v), subst(tmp->left, x, v), subst(tmp->right, x, v));
+			break;
+		}
+		case Dif:
+		{
+			Jif* tmp = (Jif*)e;
+			return CJif(subst(tmp->cond, x, v), subst(tmp->taction, x, v), subst(tmp->faction, x, v));
+			break;
+		}
+		case Dvar:
+		{
+			if(e==x)
+			{
+				return v;
+			}
+			else
+			{
+				return e;
+			}
+			break;
+			
+		}
+		case Dnum:
+		case Dboo:
+		case Dprim:
+		case Doper:
+			return e;
+	}
 }
 
 //LL Interpreter
@@ -368,10 +426,29 @@ void eval(expr** e)
 			(*e) = CKif(env, tmp->taction, tmp->faction, end);
 			break;
 		}
+		case Doper:
+		{
+			printf("OPER\n");
+			JOper* tmp = (JOper*)(*e);
+			if(checkMap(tmp))
+			{
+				expr* defe = cmap[checkMap(tmp)]->e;
+				expr* dnode = ((JOper*)cmap[checkMap(tmp)]->oper)->args;
+				expr* enode = tmp->args;
+				
+				while(dnode!=NULL && enode!=NULL)
+				{
+					defe = subst(defe, ((CKCheck*)dnode)->data, ((CKCheck*)enode)->data);
+					enode = ((CKCheck*)enode)->next;
+					dnode = ((CKCheck*)dnode)->next;
+				}
+				*e = defe;
+			}
+			break;
+		}
         case Dnum:
         case Dboo:
         case Dprim:
-		case Doper:
 		{
 			switch(end->d)
 			{
