@@ -8,7 +8,6 @@ Nicholas Sweeney LL Code
 
 enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef};
 typedef struct {enum determinant d;}expr;
-JDefine** cmap = NULL;
 
 typedef struct
 {
@@ -62,12 +61,6 @@ typedef struct
 	expr d;
 	expr* oper;
 	expr* e;
-}
-typedef struct
-{
-	expr d;
-	expr* oper;
-	expr* e;
 }JDefine;
 
 typedef struct
@@ -110,6 +103,7 @@ typedef struct
 	
 }KUncheck;
 
+JDefine** cmap = NULL;
 
 expr* CJApp(expr* oper, expr* left, expr* right)
 {
@@ -337,14 +331,14 @@ int booq(expr* e)
 //Checks to see if the expression is already in the map
 int checkMap(expr* e)
 {
-	CJOper* o = (CJOper*)e;
+	JOper* o = (JOper*)e;
 	if(cmap==NULL)
 	{
 		cmap = malloc(sizeof(JDefine*));
 	}
-	for(int i=0; i<(sizeof(map)/sizeof(JDefine)); ++i)
+	for(int i=0; i<(sizeof(cmap)/sizeof(JDefine)); ++i)
 	{
-		if(strcmp(o->s, ((JOper*)cmap[i]->oper))
+		if(strcmp(o->s, (((JOper*)cmap[i])->s)))
 		{
 			return i;
 		}
@@ -356,12 +350,13 @@ int checkMap(expr* e)
 void pushMap(expr* jd)
 {
 	JDefine** tmp = malloc(sizeof(cmap)+sizeof(JDefine*));
-	for(int i=0;i< (sizeof(cmap)/sizeof(JDefine*));++i)
+	int i;
+	for(i=0;i< (sizeof(cmap)/sizeof(JDefine*));++i)
 	{
-		tmp[i] = map[i];
+		tmp[i] = cmap[i];
 	}
 	tmp[i] = jd;
-	free(map);
+	free(cmap);
 	cmap = tmp;
 }
 
@@ -438,9 +433,9 @@ void eval(expr** e)
 				
 				while(dnode!=NULL && enode!=NULL)
 				{
-					defe = subst(defe, ((CKCheck*)dnode)->data, ((CKCheck*)enode)->data);
-					enode = ((CKCheck*)enode)->next;
-					dnode = ((CKCheck*)dnode)->next;
+					defe = subst(defe, (((KCheck*)dnode)->curr), (((KCheck*)enode)->curr));
+					enode = ((KCheck*)enode)->next;
+					dnode = ((KCheck*)dnode)->next;
 				}
 				*e = defe;
 			}
