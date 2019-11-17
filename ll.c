@@ -6,7 +6,7 @@ Nicholas Sweeney LL Code
 #include <stdlib.h>
 
 
-enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef};
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef, Denv};
 typedef struct {enum determinant d;}expr;
 
 typedef struct
@@ -65,6 +65,14 @@ typedef struct
 
 typedef struct
 {
+	expr* d;
+	JVar* v;
+	expr* val;
+	expr* next;
+}JEnv;
+
+typedef struct
+{
 	expr d;
 }KRet;
 
@@ -72,6 +80,7 @@ typedef struct
 {
 	expr d;
 	expr* cond;
+	expr* env;
 	expr* taction;
 	expr* faction;
 	expr* k;
@@ -198,6 +207,17 @@ expr* CJDefine(expr* oper, expr* e)
 	
 }
 
+expr* CJEnv(JVar* v, expr* val, expr* next)
+{
+	printf("Made JEnv\n");
+	JEnv* ee = malloc(sizeof(JEnv));
+	ee->d.d=Denv;
+	ee->v = v;
+	ee->val = val;
+	ee->next = next;
+	return (expr*)ee;
+}
+
 expr* CKRet()
 {
 	printf("Made KRet\n");
@@ -206,12 +226,13 @@ expr* CKRet()
 	return (expr*)e;
 }
 
-expr* CKif(expr* cond, expr* taction, expr* faction, expr* k)
+expr* CKif(expr* cond, expr* env, expr* taction, expr* faction, expr* k)
 {
 	printf("Made Kif\n");
 	Kif* e = malloc(sizeof(Kif));
 	e->d.d = DKif;
 	e->cond = cond;
+	e->env = env;
 	e->taction = taction;
 	e->faction = faction;
 	e->k = k;
@@ -433,13 +454,28 @@ void eval(expr** e)
 				
 				while(dnode!=NULL && enode!=NULL)
 				{
-					defe = subst(defe, (((KCheck*)dnode)->curr), (((KCheck*)enode)->curr));
+					env = CJEnv(((KCheck*)dnode)->curr, ((KCheck*)enode)->curr, env);
 					enode = ((KCheck*)enode)->next;
 					dnode = ((KCheck*)dnode)->next;
 				}
 				*e = defe;
 			}
 			break;
+		}
+		case Dvar:
+		{
+			printf("VAR\n");
+			JVar* tmp = (JVar*)(*e);
+			JEnv* tmpenv = env;
+			
+			while(tmpenv!=NULL)
+			{
+				printf("ENV: %s\n",tmpenv->s);
+				printf("VAR: %s\n", (JVar*)tmp->v)->s;
+				tmpenv = ((JEnv*)tmpenv)->next;
+			}
+			break;
+			
 		}
         case Dnum:
         case Dboo:
