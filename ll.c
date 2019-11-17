@@ -59,14 +59,14 @@ typedef struct
 typedef struct
 {
 	expr d;
-	expr* oper;
+	JOper* oper;
 	expr* e;
 }JDefine;
 
 typedef struct
 {
-	expr* d;
-	JVar* v;
+	expr d;
+	expr* v;
 	expr* val;
 	expr* next;
 }JEnv;
@@ -113,6 +113,38 @@ typedef struct
 }KUncheck;
 
 JDefine** cmap = NULL;
+
+//Checks to see if the expression is already in the map
+int checkMap(JOper* e)
+{
+	JOper* o = (JOper*)e;
+	if(cmap==NULL)
+	{
+		cmap = malloc(sizeof(JDefine*));
+	}
+	for(int i=0; i<(sizeof(cmap)/sizeof(JDefine)); ++i)
+	{
+		if(strcmp(o->s, (((JOper*)cmap[i])->s)))
+		{
+			return i;
+		}
+	}
+	return 0;
+}
+
+//Updates Map with new JDef
+JDefine* pushMap(JDefine* jd)
+{
+	JDefine** tmp = malloc(sizeof(cmap)+sizeof(JDefine*));
+	int i;
+	for(i=0;i< (sizeof(cmap)/sizeof(JDefine*));++i)
+	{
+		tmp[i] = cmap[i];
+	}
+	tmp[i] = jd;
+	free(cmap);
+	cmap = tmp;
+}
 
 expr* CJApp(expr* oper, expr* left, expr* right)
 {
@@ -190,7 +222,7 @@ expr* CJVar(char* s)
 	return (expr*)e;
 }
 
-expr* CJDefine(expr* oper, expr* e)
+expr* CJDefine(JOper* oper, expr* e)
 {
 	printf("Made JDefine\n");
 	if(checkMap(oper))
@@ -202,12 +234,12 @@ expr* CJDefine(expr* oper, expr* e)
 	ee->d.d = Djdef;
 	ee->oper = oper;
 	ee->e = e;
-	pushMap(ee);
+	ee = pushMap(ee);
 	return (expr*)ee;
 	
 }
 
-expr* CJEnv(JVar* v, expr* val, expr* next)
+expr* CJEnv(expr* v, expr* val, expr* next)
 {
 	printf("Made JEnv\n");
 	JEnv* ee = malloc(sizeof(JEnv));
@@ -349,38 +381,6 @@ int booq(expr* e)
     }
 }
 
-//Checks to see if the expression is already in the map
-int checkMap(expr* e)
-{
-	JOper* o = (JOper*)e;
-	if(cmap==NULL)
-	{
-		cmap = malloc(sizeof(JDefine*));
-	}
-	for(int i=0; i<(sizeof(cmap)/sizeof(JDefine)); ++i)
-	{
-		if(strcmp(o->s, (((JOper*)cmap[i])->s)))
-		{
-			return i;
-		}
-	}
-	return 0;
-}
-
-//Updates Map with new JDef
-void pushMap(expr* jd)
-{
-	JDefine** tmp = malloc(sizeof(cmap)+sizeof(JDefine*));
-	int i;
-	for(i=0;i< (sizeof(cmap)/sizeof(JDefine*));++i)
-	{
-		tmp[i] = cmap[i];
-	}
-	tmp[i] = jd;
-	free(cmap);
-	cmap = tmp;
-}
-
 expr* subst(expr* e, expr* x, expr* v)
 {
 	switch(e->d)
@@ -439,7 +439,7 @@ void eval(expr** e)
         case Dif:
 		{
 			Jif* tmp = (Jif*)e;
-			(*e) = CKif(env, tmp->taction, tmp->faction, end);
+			(*e) = CKif(env, tmp->cond, tmp->taction, tmp->faction, end);
 			break;
 		}
 		case Doper:
@@ -466,13 +466,13 @@ void eval(expr** e)
 		{
 			printf("VAR\n");
 			JVar* tmp = (JVar*)(*e);
-			JEnv* tmpenv = env;
+			JEnv* tmpenv = (JEnv*)env;
 			
 			while(tmpenv!=NULL)
 			{
-				printf("ENV: %s\n",tmpenv->s);
-				printf("VAR: %s\n", (JVar*)tmp->v)->s;
-				tmpenv = ((JEnv*)tmpenv)->next;
+				printf("ENV: %s\n",tmpenv->v);
+				printf("VAR: %s\n", (JVar*)tmp->s);
+				tmpenv = (JEnv*)tmpenv->next;
 			}
 			break;
 			
@@ -516,7 +516,7 @@ void eval(expr** e)
 					KUncheck* unchecker = (KUncheck*)tmp2->uncheck;
 					(*e) = unchecker->curr;
 					unchecker = (KUncheck*)unchecker->next;
-					tmp2->uncheck = unchecker;
+					tmp2->uncheck = (expr*)unchecker;
 					end = (expr*)tmp2;
 					break;
 				}
