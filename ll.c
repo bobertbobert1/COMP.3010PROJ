@@ -451,10 +451,11 @@ void eval(expr** e)
 				expr* defe = cmap[checkMap(tmp)]->e;
 				expr* dnode = ((JOper*)cmap[checkMap(tmp)]->oper)->args;
 				expr* enode = tmp->args;
+				expr* tmpenv = env;
 				
 				while(dnode!=NULL && enode!=NULL)
 				{
-					env = CJEnv(((KCheck*)dnode)->curr, ((KCheck*)enode)->curr, env);
+					tmpenv = CJEnv(((KCheck*)dnode)->curr, ((KCheck*)enode)->curr, env);
 					enode = ((KCheck*)enode)->next;
 					dnode = ((KCheck*)dnode)->next;
 				}
