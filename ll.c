@@ -451,7 +451,7 @@ void eval(expr** e)
 				expr* defe = cmap[checkMap(tmp)]->e;
 				expr* dnode = ((JOper*)cmap[checkMap(tmp)]->oper)->args;
 				expr* enode = tmp->args;
-				expr* tmpenv = env;
+				JEnv* tmpenv = NULL;
 				
 				while(dnode!=NULL && enode!=NULL)
 				{
