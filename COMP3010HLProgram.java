@@ -401,10 +401,10 @@ class CC0
 }
 class Define
 {
-    JOper oper;
+    Lam oper;
     Joe e;
     
-    public Define(JOper oper, Joe e)
+    public Define(Lam oper, Joe e)
     {
         this.oper = oper;
         this.e = e;
@@ -416,14 +416,15 @@ class Define
     }
 }
 
-class JOper implements Joe
+class Lam implements Joe
 {
     public String s;
     public Joe args;
     
-    public JOper(String s)
+    public Lam(String s, Joe args)
     {
         this.s = s;
+        this.args = args;
     }
     public Joe interp()
     {
