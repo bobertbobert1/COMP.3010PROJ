@@ -6,7 +6,7 @@ Nicholas Sweeney LL Code
 #include <stdlib.h>
 
 
-enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Doper, Dvar, Djdef, Denv};
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Dlam, Dvar, Djdef, Denv};
 typedef struct {enum determinant d;}expr;
 
 typedef struct
@@ -48,7 +48,7 @@ typedef struct
 	expr d;
 	expr* args;
 	char* s;
-}JOper;
+}Lam;
 
 typedef struct
 {
@@ -203,11 +203,11 @@ expr* CJPrim(char* p)
 	return (expr*)e;
 }
 
-expr* CJOper(char* s, expr* args)
+expr* CLam(char* s, expr* args)
 {
 	printf("Made Oper\n");
-	JOper* e = malloc(sizeof(JOper));
-	e->d.d = Doper;
+	Lam* e = malloc(sizeof(Lam));
+	e->d.d = Dlam;
 	e->args = args;
 	e->s = s;
 	return (expr*)e;
@@ -222,7 +222,7 @@ expr* CJVar(char* s)
 	return (expr*)e;
 }
 
-expr* CJDefine(JOper* oper, expr* e)
+expr* CJDefine(Lam* oper, expr* e)
 {
 	printf("Made JDefine\n");
 	if(checkMap(oper))
@@ -413,7 +413,7 @@ expr* subst(expr* e, expr* x, expr* v)
 		case Dnum:
 		case Dboo:
 		case Dprim:
-		case Doper:
+		case Dlam:
 			return e;
 	}
 }
@@ -442,14 +442,14 @@ void eval(expr** e)
 			(*e) = CKif(env, tmp->cond, tmp->taction, tmp->faction, end);
 			break;
 		}
-		case Doper:
+		case Dlam:
 		{
 			printf("OPER\n");
-			JOper* tmp = (JOper*)(*e);
+			Lam* tmp = (Lam*)(*e);
 			if(checkMap(tmp))
 			{
 				expr* defe = cmap[checkMap(tmp)]->e;
-				expr* dnode = ((JOper*)cmap[checkMap(tmp)]->oper)->args;
+				expr* dnode = ((Lam*)cmap[checkMap(tmp)]->oper)->args;
 				expr* enode = tmp->args;
 				JEnv* tmpenv = NULL;
 				
