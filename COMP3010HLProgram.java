@@ -420,11 +420,13 @@ class Lam implements Joe
 {
     public String s;
     public Joe args;
+    public Joe e;
     
-    public Lam(String s, Joe args)
+    public Lam(String s, Joe args, Joe e)
     {
         this.s = s;
         this.args = args;
+        this.e = e;
     }
     public Joe interp()
     {
@@ -443,9 +445,12 @@ class Lam implements Joe
     
     public String pp()
     {
-        return s+"("+args.pp()+")";
+        return s+"("+args.pp()+")"+e.pp();
     } 
-    public Joe subst(JVar v, Joe e){ return this; }
+    public Joe subst(JVar v, Joe e)
+    { 
+        return this.e.subst(v, e); 
+    }
 }
 
 class JVar implements Joe
@@ -640,6 +645,11 @@ class COMP3010HLProgram
              fw.write("\texpr* test4 = "+printJif(e)+";\n");
              fw.write("\teval(&test4);\n");
         }
+        if(e instanceof Lam)
+        {
+            fw.write("\texpr* test5 = "+printLam(e)+";\n");
+            fw.write("\teval(&test5);\n");
+        }
         fw.write("\treturn 0;\n}");
         fw.close();
     }
@@ -720,6 +730,39 @@ class COMP3010HLProgram
         if(((Jif)e).faction instanceof JBoo)
         {            output+=", "+printJBoo(((Jif)e).faction);        }
         return output;
+    }
+    
+    static String printLam(Joe e)
+    {
+        return "CLam("+printJConst(((Lam)e).args)+")";
+    }
+    
+    static String printJConst(Joe e)
+    {
+        if(e instanceof JConst && ((JConst)e).left instanceof Jif)
+        {
+            return printJif(((JConst)e).left);
+        }
+        if(e instanceof JConst && ((JConst)e).left instanceof JApp)
+        {
+            return printJApp(((JConst)e).left);
+        }
+        if(e instanceof JConst && ((JConst)e).left instanceof JNumber)
+        {
+            return printJNumber(((JConst)e).left);
+        }
+        if(e instanceof JConst && ((JConst)e).left instanceof JBoo)
+        {
+            return printJBoo(((JConst)e).left);
+        }
+        if(e instanceof JConst && ((JConst)e).left instanceof JVar)
+        {
+            return "CJVar("+((JVar)((JConst)e).left).s+")";
+        }
+        else
+        {
+            return printJConst(((JConst)e).right);
+        }
     }
     
     //Test function compares Sxpr to their Joe counterpart along with what the expected value should be
