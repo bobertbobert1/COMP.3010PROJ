@@ -478,7 +478,7 @@ class JVar implements Joe
     }
     public Joe subst(JVar v, Joe e)
     { 
-        if(this == v)
+        if(this.s.equals(v.s))
         {
             return e;
         }
@@ -783,10 +783,53 @@ class COMP3010HLProgram
         test(se, JNum(n));
     }
     
+    static void test_j3()
+    {
+        Joe test1 = JA(JNum(2), new JVar("x"));
+        Joe test2 = JA(new JVar("x"), JNum(3));
+        Joe test3 = JM(JNum(4), new JVar("x"));
+        Joe test4 = JM(new JVar("x"), JNum(5));
+        int passed = 0;
+        
+        Joe lamtest = new Lam("lamda", new JConst(new JVar("x"), new JEmpty()), test1);
+        Joe lamresult = lamtest.subst(new JVar("x"), JNum(2));
+        if(lamresult.interp().pp().equals("4"))
+        {
+            System.out.println("Test 1 Passed!");
+            passed++;
+        }
+        
+        lamtest = new Lam("lamda", new JConst(new JVar("x"), new JEmpty()), test2);
+        lamresult = lamtest.subst(new JVar("x"), JNum(2));
+        if(lamresult.interp().pp().equals("5"))
+        {
+            System.out.println("Test 2 Passed!");
+            passed++;
+        }
+        
+        lamtest = new Lam("lamda", new JConst(new JVar("x"), new JEmpty()), test3);
+        lamresult = lamtest.subst(new JVar("x"), JNum(2));
+        if(lamresult.interp().pp().equals("8"))
+        {
+            System.out.println("Test 3 Passed!");
+            passed++;
+        }
+        
+        lamtest = new Lam("lamda", new JConst(new JVar("x"), new JEmpty()), test4);
+        lamresult = lamtest.subst(new JVar("x"), JNum(2));
+        if(lamresult.interp().pp().equals("10"))
+        {
+            System.out.println("Test 4 Passed!");
+            passed++;
+        }
+        System.out.println("Tests Passed: "+passed);
+             
+    }
     //Main runs all tests
     public static void main(String[] args) throws IOException 
     {
         Joe e = JA(JNum(1), JNum(1));
         emit(e);
+        test_j3();
     }
 }
