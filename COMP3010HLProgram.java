@@ -505,6 +505,8 @@ class COMP3010HLProgram
     {    return SApp("*",left, right);}
     static Sxpr SIf(Sxpr cond, Sxpr left, Sxpr right)
     {    return new SConst(new SStr("if"), new SConst(cond, new SConst(left, new SConst(right, new SEmpty()))));    }
+    static Sxpr SLam(Sxpr s, Sxpr e, Sxpr ee)
+    { return new SConst(new SStr("lam"), new SConst(s, new SConst(e, new SConst(ee, new SEmpty())))); }
     
     static Joe desugar(Sxpr se)
     {
@@ -605,6 +607,15 @@ class COMP3010HLProgram
             return new Jif( desugar(((SConst)((SConst)se).right).left),
                    desugar(((SConst)((SConst)((SConst)se).right).right).left),
                    desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left) ); 
+        }
+        
+        if( se instanceof SConst
+         && ((SStr)((SConst)se).left).s.equals("let")
+         && ((SConst)se).right instanceof SConst)
+        {
+            return new Lam(((SStr)((SConst)((SConst)se).right).left).s,
+                    desugar(((SConst)((SConst)((SConst)se).right).right).left),
+                    desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left));
         }
         
         return JNum(666);
