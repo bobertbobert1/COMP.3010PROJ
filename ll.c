@@ -6,7 +6,7 @@ Nicholas Sweeney LL Code
 #include <stdlib.h>
 
 
-enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Dlam, Dvar, Djdef, Denv};
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Dlam, Dvar, Djdef, Denv, Dclo};
 typedef struct {enum determinant d;}expr;
 
 typedef struct
@@ -74,6 +74,13 @@ typedef struct
 typedef struct
 {
 	expr d;
+	expr* delt;
+	expr* env;
+}JClo;
+
+typedef struct
+{
+	expr d;
 }KRet;
 
 typedef struct
@@ -91,7 +98,6 @@ typedef struct
 	expr d;
 	expr* oper;
 	expr* check;
-	expr* env;
 	expr* uncheck;
 	expr* k;
 }KApp;
@@ -250,6 +256,16 @@ expr* CJEnv(expr* v, expr* val, expr* next)
 	return (expr*)ee;
 }
 
+expr* CJClo(expr* delt, expr* env)
+{
+	printf("Made JClo\n");
+	JClo* ee = malloc(sizeof(JClo));
+	ee->d.d = Dclo;
+	ee->delt = delt;
+	ee->env = env;
+	return (expr*)ee;
+}
+
 expr* CKRet()
 {
 	printf("Made KRet\n");
@@ -271,14 +287,13 @@ expr* CKif(expr* cond, expr* env, expr* taction, expr* faction, expr* k)
 	return (expr*)e;
 }
 
-expr* CKApp(expr* oper, expr* check, expr* env, expr* uncheck, expr* k)
+expr* CKApp(expr* oper, expr* check, expr* uncheck, expr* k)
 {
 	printf("Made KApp\n");
 	KApp* e = malloc(sizeof(KApp));
 	e->d.d = DKApp;
 	e->oper = oper;
 	e->check = check;
-	e->env = env;
 	e->uncheck = uncheck;
 	e->k = k;
 	return (expr*)e;
@@ -397,6 +412,12 @@ expr* subst(expr* e, expr* x, expr* v)
 			return CJif(subst(tmp->cond, x, v), subst(tmp->taction, x, v), subst(tmp->faction, x, v));
 			break;
 		}
+		case Dclo:
+		{
+			JClo* tmp = (JClo*)e;
+			return CJClo(subst(tmp->delt, x, v),subst(tmp->env,x ,v));
+			break;
+		}
 		case Dvar:
 		{
 			if(e==x)
@@ -433,7 +454,7 @@ void eval(expr** e)
 		{
 			JApp* tmp = (JApp*)(*e);
 			(*e) = tmp->oper;
-			end = CKApp(NULL, NULL, env, CKUncheck(tmp->left, CKUncheck(tmp->right, NULL)), end);
+			end = CKApp(CJClo(delta((*e) ,tmp->check),  env)), NULL, CKUncheck(tmp->left, CKUncheck(tmp->right, NULL)), end);
 			break;
 		}
         case Dif:
@@ -507,8 +528,8 @@ void eval(expr** e)
 				}
 				if(tmp2->uncheck == NULL)
 				{
-					(*e) = delta(tmp2->oper,  tmp2->check);
-					env = tmp2->env;
+					(*e) = JClo(delta(tmp2->oper,  tmp2->check), tmp2->env);
+					env = NULL;
 					end = tmp2->k;
 					break;
 				}
