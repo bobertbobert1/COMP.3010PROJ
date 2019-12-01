@@ -833,6 +833,10 @@ class COMP3010HLProgram
             System.out.println("Test 4 Passed!");
             passed++;
         }
+        
+        lamtest = new Lam("fac!", new JConst(new JVar("f"), new JEmpty()), new Jif(new Lam("0", new JConst(new JVar("f"), new JEmpty()), new Jif(new JVar("f"), new JBoo(true), new JBoo(false))),
+                        new Lam("1", new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty())), new JConst(new JVar("y"), new JEmpty())),
+                        new Lam("2", new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty())), new JApp(new JPrim("*"), new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty()))))));
         System.out.println("Tests Passed: "+passed);
              
     }
