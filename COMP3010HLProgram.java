@@ -585,6 +585,7 @@ class COMP3010HLProgram
         {
             return JM(JNum(-1), desugar(((SConst)((SConst)se).right).left) ); 
         }
+        
         //desugar none operational primitives
         if ( se instanceof SConst
          && ((SConst)se).left instanceof SStr
@@ -595,6 +596,7 @@ class COMP3010HLProgram
              return new JApp( new JPrim(((SStr)((SConst)se).left).s),
                     new JConst(desugar(((SConst)((SConst)se).right).left),
                     new JConst(desugar(((SConst)((SConst)((SConst)se).right).right).left), new JEmpty()))); }
+        
         //desugar If statements
         if ( se instanceof SConst
          && ((SConst)se).left instanceof SStr
@@ -609,11 +611,21 @@ class COMP3010HLProgram
                    desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left) ); 
         }
         
-        if( se instanceof SConst
+        //desugar of a J4 Lam
+        if(se instanceof SConst
          && ((SStr)((SConst)se).left).s.equals("let")
-         && ((SConst)se).right instanceof SConst)
+         && ((SConst)se).right instanceof SConst
+         && ((SConst)((SConst)se).right).right instanceof SStr)
         {
             return new Lam(((SStr)((SConst)((SConst)se).right).left).s,
+                    desugar(((SConst)((SConst)((SConst)se).right).right).left),
+                    desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left));
+        }
+        
+        //default desugar of a Lam
+        if(se instanceof SConst && ((SStr)((SConst)se).left).s.equals("let"))
+        {
+            return new Lam("Function: ",
                     desugar(((SConst)((SConst)((SConst)se).right).right).left),
                     desugar(((SConst)((SConst)((SConst)((SConst)se).right).right).right).left));
         }
@@ -698,6 +710,7 @@ class COMP3010HLProgram
         output+=")";
         return output;
     }
+    
     static String printJif(Joe e)
     {
         String output = "CJIf(";
@@ -794,7 +807,7 @@ class COMP3010HLProgram
         test(se, JNum(n));
     }
     
-    static void test_j3()
+    static void test_j4()
     {
         Joe test1 = JA(JNum(2), new JVar("x"));
         Joe test2 = JA(new JVar("x"), JNum(3));
@@ -837,6 +850,7 @@ class COMP3010HLProgram
         lamtest = new Lam("fac!", new JConst(new JVar("f"), new JEmpty()), new Jif(new Lam("0", new JConst(new JVar("f"), new JEmpty()), new Jif(new JVar("f"), new JBoo(true), new JBoo(false))),
                         new Lam("1", new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty())), new JConst(new JVar("y"), new JEmpty())),
                         new Lam("2", new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty())), new JApp(new JPrim("*"), new JConst(new JVar("x"), new JConst(new JVar("y"), new JEmpty()))))));
+        
         System.out.println("Tests Passed: "+passed);
              
     }
@@ -845,6 +859,6 @@ class COMP3010HLProgram
     {
         Joe e = JA(JNum(1), JNum(1));
         emit(e);
-        test_j3();
+        test_j4();
     }
 }

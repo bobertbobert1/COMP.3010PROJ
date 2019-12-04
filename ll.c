@@ -465,23 +465,9 @@ void eval(expr** e)
 		}
 		case Dlam:
 		{
-			printf("OPER\n");
-			Lam* tmp = (Lam*)(*e);
-			if(checkMap(tmp))
-			{
-				expr* defe = cmap[checkMap(tmp)]->e;
-				expr* dnode = ((Lam*)cmap[checkMap(tmp)]->oper)->args;
-				expr* enode = tmp->args;
-				JEnv* tmpenv = NULL;
-				
-				while(dnode!=NULL && enode!=NULL)
-				{
-					tmpenv = CJEnv(((KCheck*)dnode)->curr, ((KCheck*)enode)->curr, env);
-					enode = ((KCheck*)enode)->next;
-					dnode = ((KCheck*)dnode)->next;
-				}
-				*e = defe;
-			}
+			printf("LAM\n");
+			e = CJClo(e, env);
+			env = NULL;
 			break;
 		}
 		case Dvar:
@@ -502,6 +488,7 @@ void eval(expr** e)
         case Dnum:
         case Dboo:
         case Dprim:
+		case Dclo:
 		{
 			switch(end->d)
 			{
