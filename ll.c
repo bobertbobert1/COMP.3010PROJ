@@ -444,7 +444,7 @@ void eval(expr** e)
 {
 	
 	expr *end = CKRet();
-	expr *env = NULL;
+	JEnv *env = NULL;
 	
     while(1)
     {
@@ -466,7 +466,9 @@ void eval(expr** e)
 		case Dlam:
 		{
 			printf("LAM\n");
+			env = CJEnv(((Lam*)e)->s, NULL, env);
 			e = CJClo(e, env);
+			env->val = e;
 			env = NULL;
 			break;
 		}
