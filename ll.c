@@ -6,7 +6,7 @@ Nicholas Sweeney LL Code
 #include <stdlib.h>
 
 
-enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Dlam, Dvar, Djdef, Denv, Dclo};
+enum determinant{Dif, Dnum, Dapp, Dprim, Dboo, DKif, DKApp, DKRet, DKCheck, DKUncheck, DBool, Dlam, Dvar, Djdef, Denv, Dclo, Dcase, Dkcase, Dunit, Dpair, Dinl, Dinr};
 typedef struct {enum determinant d;}expr;
 
 typedef struct
@@ -117,6 +117,55 @@ typedef struct
 	expr* next;
 	
 }KUncheck;
+
+typedef struct
+{
+	expr d;
+	expr* e;
+	expr* left;
+	expr* lefte;
+	expr* right;
+	expr* righte;
+	
+}JCase;
+
+typedef struct
+{
+	expr d;
+	expr* e;
+	exor* left;
+	expr* right;
+	expr* lefte;
+	expr* righte;
+	expr* env;
+	expr* k;
+}KCase;
+
+typedef struct
+{
+	expr d;
+}JUnit;
+
+typedef struct
+{
+	expr d;
+	expr* left;
+	expr* right;
+}JPair;
+
+typedef struct
+{
+	expr d;
+	expr* e;
+
+}JInl;
+
+typedef struct
+{
+	expr d;
+	expr* e;
+}JInr;
+
 
 JDefine** cmap = NULL;
 
@@ -319,6 +368,70 @@ expr* CKUncheck(expr* curr, expr* next)
 	return (expr*)e;
 }
 
+expr* CJCase(expr* e, expr* left, expr* lefte, expr* right, expr* righte)
+{
+	printf("Made JCase\n");
+	JCase* e = malloc(sizeof(JCase));
+	e->d.d = Dcase;
+	e->e = e;
+	e->left = left;
+	e->right = right;
+	e->lefte = lefte;
+	e->righte = righte;
+	return e;	
+}
+
+expr* CKCase(expr* e, expr* left, expr* lefte, expr* right, expr* righte, expr* env, expr* k)
+{
+	printf("Made KCase\n");
+	KCase* e = malloc(sizeof(KCase));
+	e->d.d = Dkcase;
+	e->e e;
+	e->left = left;
+	e->right = right;
+	e->lefte = lefte;
+	e->righte = righte;
+	e->env = env;
+	e->k = k;
+	return e;
+}
+
+expr* CJUnit()
+{
+	printf("Made JUnit\n");
+	JUnit* e = malloc(sizeof(JUnit));
+	e->d.d = Dunit;
+	return e;
+}
+
+expr* CJPair(expr* left, expr* right)
+{
+	printf("Made JPair\n");
+	JPair* e = malloc(sizeof(JPair));
+	e->d.d = Dpair;
+	e->left = left;
+	e->right = right;
+	return e;	
+}
+
+expr* CJInl(expr* e)
+{
+	printf("Made JInl\n");
+	JInl* e = malloc(sizeof(JInl));
+	e->d.d = Dinl;
+	e->e = e;
+	return e;
+}
+
+expr* CJInr(expr* e)
+{
+	printf("Made JInr\n");
+	JInr* e = malloc(sizeof(JInr));
+	e->d.d = Dinr;
+	e->e = e;
+	return e;
+}
+
 expr* delta(expr* oper, expr* check)
 {
     KCheck* c = (KCheck*)check;
@@ -330,46 +443,68 @@ expr* delta(expr* oper, expr* check)
 	int l = left->n;
 	int r = right->n;
     
-    if (!strcmp(sign, "+")) 
-    {
-        return CJNum(l + r); 
-    }
-    if (!strcmp(sign, "-")) 
-    { 
-        return CJNum(l - r); 
-    }
-    if (!strcmp(sign, "*")) 
-    { 
-        return CJNum(l * r); 
-    }
-    if (!strcmp(sign, "/")) 
-    { 
-        return CJNum(l / r); 
-    }
-    if (!strcmp(sign, "<")) 
-    { 
-        return CJBoo(l < r); 
-    }
-    if (!strcmp(sign, "<=")) 
-    { 
-        return CJBoo(l <= r); 
-    }
-    if (!strcmp(sign, "==")) 
-    { 
-        return CJBoo(l == r); 
-    }
-    if (!strcmp(sign, ">")) 
-    { 
-        return CJBoo(l > r); 
-    }
-    if (!strcmp(sign, ">=")) 
-    { 
-        return CJBoo(l >= r); 
-    }
-    if (!strcmp(sign, "!=")) 
-    { 
-        return CJBoo(l != r); 
-    }
+	if(c->curr->d == Dnum && n->curr->d == Dnum)
+	{
+		if (!strcmp(sign, "+")) 
+		{
+			return CJNum(l + r); 
+		}
+		if (!strcmp(sign, "-")) 
+		{ 
+			return CJNum(l - r); 
+		}
+		if (!strcmp(sign, "*")) 
+		{ 
+			return CJNum(l * r); 
+		}
+		if (!strcmp(sign, "/")) 
+		{ 
+			return CJNum(l / r); 
+		}
+		if (!strcmp(sign, "<")) 
+		{ 
+			return CJBoo(l < r); 
+		}
+		if (!strcmp(sign, "<=")) 
+		{ 
+			return CJBoo(l <= r); 
+		}
+		if (!strcmp(sign, "==")) 
+		{ 
+			return CJBoo(l == r); 
+		}
+		if (!strcmp(sign, ">")) 
+		{ 
+			return CJBoo(l > r); 
+		}
+		if (!strcmp(sign, ">=")) 
+		{ 
+			return CJBoo(l >= r); 
+		}
+		if (!strcmp(sign, "!=")) 
+		{ 
+			return CJBoo(l != r); 
+		}
+	}
+	
+	else
+	{
+		if(!strcmp(sign, "JPair"))
+		{
+			return CJPair(c->curr,n->curr);
+		}
+		
+		if(!strcmp(sign, "Jinl"))
+		{
+			return CJInl(c->curr);
+		}
+		
+		if(!strcmp(sign, "Jinr"))
+		{
+			return CJInr(n->curr);
+		}
+	}
+    
 
     return CJNum(666);
 }
@@ -487,6 +622,17 @@ void eval(expr** e)
 			break;
 			
 		}
+		
+		case Dcase:
+		{
+			printf("CASE\n");
+			JCase* tmp = (JCase*)(*e);
+			end = CKCase(tmp->e, tmp->left, tmp->lefte, tmp->right, tmp->righte, env, end);
+			(*e) = tmp->e;
+			break;
+		}
+		case Dinl:
+		case Dinr:
         case Dnum:
         case Dboo:
         case Dprim:
@@ -538,6 +684,22 @@ void eval(expr** e)
 				Kif* tmp2 = (Kif*)end;
 				(*e) = booq((*e)) ? tmp2->taction : tmp2->faction;
 				env = tmp2->cond;
+				end = tmp2->k;
+				break;
+			}
+			case Dkcase:
+			{
+				KCase* tmp2 = (KCase*)end;
+				if((*e)->d == Dinl)
+				{
+					(*e) = tmp2->lefte;
+				}
+				if((*e)->d ==Dinr)
+				{
+					(*e) = tmp2->righte;
+				}
+				
+				env = tmp2->env;
 				end = tmp2->k;
 				break;
 			}

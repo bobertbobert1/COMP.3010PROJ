@@ -314,91 +314,6 @@ class Cif implements Context
     
 }
 
-//CC0 Machine
-class CC0
-{
-    class state
-    {
-        Joe e;
-        Context E;
-        public state(Joe e, Context E)
-        {
-            this.e = e;
-            this.E = E;
-        }
-    }
-    
-    public state inject(Joe e)
-    {
-        return new state(e, new hole());
-    }
-    
-    public Joe extract(state st)
-    {
-        return st.E.plug(st.e);
-    }
-    
-    public Joe interp(Joe e)
-    {
-        state st = inject(e);
-        while(!(st.e instanceof JNumber) && !(st.E instanceof hole))
-        {
-            st = step(st);
-            st.e = st.e.step();
-        }
-        return extract(st);
-    }
-    
-    public Joe delta(Joe e)
-    {
-        Joe oper = ((JApp)e).oper;
-        Joe args = ((JApp)e).args;
-        String s = ((JPrim)oper).s;
-        int left = ((JNumber)((JConst)args).left).n;
-        int right = ((JNumber)((JConst)((JConst)args).right).left).n;
-        if(s.equals("+")) {return new JNumber(left+right);}
-        if(s.equals("*")) {return new JNumber(left*right);}
-        if(s.equals("-")) {return new JNumber(left-right);}
-        if(s.equals("/")) {return new JNumber(left/right);}
-        if(s.equals("<")) {return new JBoo(left<right);}
-        if(s.equals("<=")) {return new JBoo(left<=right);}
-        if(s.equals("==")) {return new JBoo(left==right);}
-        if(s.equals(">")) {return new JBoo(left>right);}
-        if(s.equals(">=")) {return new JBoo(left>=right);}
-        if(s.equals("!=")) {return new JBoo(left!=right);}
-        return new JNumber(666);
-    }
-    public state step(state st)
-    {
-        if(st.e instanceof Jif)
-        {
-            return new state(((Jif)st.e).cond, new Cif(new hole(), ((Jif)st.e).taction, ((Jif)st.e).faction));
-        }
-        if(st.e instanceof JBoo && ((JBoo)st.e).b == true && st.E instanceof Cif)
-        {
-            return new state(((Cif)st.E).taction, new hole());
-        }
-        if(st.e instanceof JBoo && ((JBoo)st.e).b == false && st.E instanceof Cif)
-        {
-            return new state(((Cif)st.E).faction, new hole());
-        }
-        if(st.e instanceof JApp)
-        {
-            return new state(((JConst)((JApp)st.e).args).left, new cap(new hole(), ((JApp)st.e).oper, new JEmpty(), ((JConst)((JConst)((JApp)st.e).args).right).left));
-        }
-        if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).left instanceof JEmpty)
-        {
-            return new state(((cap)st.E).right, new cap(new hole(), ((JApp)st.e).oper, st.e, new JEmpty()));
-        }
-        if(st.e instanceof JNumber && st.E instanceof cap && ((cap)st.E).right instanceof JEmpty)
-        {
-            return new state(delta(st.E.plug(st.e)), new hole());
-        }
-        
-        return new state(new JNumber(666), new hole());
-    }
-    
-}
 class Define
 {
     Lam oper;
@@ -485,6 +400,223 @@ class JVar implements Joe
         return this;
     }
 }
+
+class JObj implements Joe
+{
+    public String s;
+    public Joe e;
+    
+    public JObj(String s, Joe e)
+    {
+        this.s = s;
+        this.e = e;
+    }
+    
+    public Joe interp()
+    {
+        return null;
+    }
+    
+    public String pp()
+    {
+        return "JObj ("+e.pp()+")";
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+}
+class JCase implements Joe
+{
+    public Joe e;
+    public Joe left;
+    public Joe right;
+    public Joe lefte;
+    public Joe righte;
+    
+    public JCase(Joe e, Joe left, Joe lefte, Joe right, Joe righte)
+    {
+        this.e = e;
+        this.left = left;
+        this.lefte = lefte;
+        this.right = right;
+        this.righte = righte;
+    }
+    
+    public Joe interp()
+    {
+        return null;
+    }
+    public String pp()
+    {
+        return "case: "+e.pp()+" as ("+left.pp()+") to "+lefte.pp()+" or ("+right.pp()+") to "+righte.pp();
+    }
+    
+    public Boolean isEqual()
+    {
+        return false;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+}
+
+class JUnit implements Joe
+{
+    public Joe interp()
+    {
+        return this;
+    }
+    
+    public String pp()
+    {
+        return "";
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+    
+}
+
+class JPair implements Joe
+{
+    public Joe left;
+    public Joe right;
+    
+    public JPair(Joe left, Joe right)
+    {
+        this.left = left;
+        this.right = right;
+    }
+    
+    public Joe interp()
+    {
+        return null;
+    }
+    
+    public String pp()
+    {
+        return "";
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+    
+}
+
+class JInl implements Joe
+{
+    public Joe e;
+    
+    public JInl(Joe e)
+    {
+        this.e = e;
+    }
+    
+    public Joe interp()
+    {
+        return null;
+    }
+    
+    public String pp()
+    {
+        return "JInl: "+e.pp();
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+    
+    
+}
+
+class JInr implements Joe
+{
+    public Joe e;
+    public JInr(Joe e)
+    {
+        this.e = e;
+    }
+    public Joe interp()
+    {
+        return null;
+    }
+    
+    public String pp()
+    {
+        return "JInr: "+e.pp();
+    }
+    
+    public Boolean isEqual()
+    {
+        return true;
+    }
+    
+    public Joe step()
+    {
+        return this;
+    }
+    
+    public Joe subst(JVar v, Joe e)
+    {
+        return this;
+    }
+}
+
+
 
 class COMP3010HLProgram
 {
